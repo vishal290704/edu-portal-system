@@ -5,6 +5,7 @@ import About from "@/components/home/About";
 import Programs from "@/components/home/Programs";
 import Facilities from "@/components/home/Facilities";
 import Statistics from "@/components/home/Statistics";
+import Leadership from "@/components/home/Leadership";
 
 export default function Home() {
   return (
@@ -16,6 +17,7 @@ export default function Home() {
       <Programs />
       <Facilities />
       <Statistics />
+      <Leadership />
     </>
   );
 }
