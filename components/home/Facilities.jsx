@@ -11,7 +11,7 @@ import { facilities } from "@/constants/facilities";
 
 export default function Facilities() {
   return (
-    <section className="section-padding bg-slate-50">
+    <section className="section-padding bg-slate-50 pt-5 pb-5">
       <Container>
 
         <SectionHeading
