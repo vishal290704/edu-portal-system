@@ -1,6 +1,8 @@
 export const aboutFeatures = [
-  "CBSE Curriculum with Modern Teaching Methods",
+  "CBSE Curriculum with Modern Teaching",
   "Experienced & Qualified Faculty Members",
   "Technology Enabled Smart Classrooms",
-  "Safe, Secure & Student Friendly Campus",
+  "Modern Science & Computer Laboratories",
+  "Safe, Secure & Student-Friendly Campus",
+  "Sports, Arts & Holistic Development",
 ];

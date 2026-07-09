@@ -6,42 +6,48 @@ import { CheckCircle2 } from "lucide-react";
 import Container from "../layout/Container";
 import SectionHeading from "../layout/SectionHeading";
 
+import { Button } from "@/components/ui/button";
+
 import { aboutFeatures } from "@/constants/about";
 
 export default function About() {
   return (
-    <section className="section-padding bg-slate-50">
+    <section className="section-padding bg-slate-50 pt-5">
       <Container>
 
         <div className="grid items-center gap-20 lg:grid-cols-2">
 
-          {/* LEFT IMAGE */}
+          {/* LEFT */}
 
           <div className="relative">
 
             <Image
-              src="/images/about-school.jpg"
-              alt="School Building"
+              src="/images/student-1.jpeg"
+              alt="School"
               width={650}
               height={700}
-              className="rounded-3xl object-cover shadow-2xl"
+              className="rounded-3xl shadow-2xl object-cover"
             />
 
-            <div className="absolute -bottom-6 -left-6 rounded-3xl bg-[#0F4C81] px-8 py-6 text-white shadow-2xl">
+            <div className="absolute -bottom-8 -left-8 rounded-3xl bg-[#0F4C81] px-8 py-6 text-white shadow-2xl">
 
               <h2 className="text-4xl font-bold">
-                25+
+
+                18+
+
               </h2>
 
               <p className="mt-2">
+
                 Years of Excellence
+
               </p>
 
             </div>
 
           </div>
 
-          {/* RIGHT CONTENT */}
+          {/* RIGHT */}
 
           <div>
 
@@ -49,24 +55,24 @@ export default function About() {
               badge="ABOUT OUR SCHOOL"
               title="Discover"
               highlight="Dynamic English School"
-              description="Dynamic English School provides an inspiring learning environment that nurtures creativity, discipline, leadership, and academic excellence."
+              description="Dynamic English School is committed to providing quality education that nurtures academic excellence, leadership, creativity, discipline, and character."
               align="left"
             />
 
             <div className="space-y-5">
 
-              {aboutFeatures.map((item) => (
+              {aboutFeatures.map((feature) => (
 
                 <div
-                  key={item}
-                  className="flex items-start gap-3"
+                  key={feature}
+                  className="flex items-start gap-4"
                 >
 
                   <CheckCircle2 className="mt-1 h-6 w-6 text-[#0F4C81]" />
 
                   <p className="text-lg text-slate-600">
 
-                    {item}
+                    {feature}
 
                   </p>
 
@@ -75,6 +81,15 @@ export default function About() {
               ))}
 
             </div>
+
+            <Button
+              size="lg"
+              className="mt-10"
+            >
+
+              Learn More
+
+            </Button>
 
           </div>
 
