@@ -8,7 +8,7 @@ import {
 export const statistics = [
   {
     title: "Students",
-    value: 2500,
+    value: 2000,
     suffix: "+",
     icon: Users,
   },
