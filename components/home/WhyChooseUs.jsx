@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import Container from "../layout/Container";
 import { features } from "@/constants/features";
+import SectionHeading from "../layout/SectionHeading";
 
 export default function WhyChooseUs() {
   return (
@@ -11,26 +12,12 @@ export default function WhyChooseUs() {
 
         {/* Heading */}
 
-        <div className="mx-auto mb-16 max-w-3xl text-center">
-
-          <span className="rounded-full bg-blue-100 px-4 py-2 text-sm font-semibold text-[#0F4C81]">
-            WHY CHOOSE US
-          </span>
-
-          <h2 className="heading-font mt-6 text-4xl font-bold text-slate-900 md:text-5xl">
-            Why Parents Trust
-            <span className="block text-[#0F4C81]">
-              Dynamic English School
-            </span>
-          </h2>
-
-          <p className="mt-6 text-lg text-slate-600">
-            We combine academic excellence, modern infrastructure,
-            experienced educators, and holistic development to prepare
-            students for a successful future.
-          </p>
-
-        </div>
+        <SectionHeading
+  badge="WHY CHOOSE US"
+  title="Why Parents Trust"
+  highlight="Dynamic English School"
+  description="We combine academic excellence, modern infrastructure, experienced educators, and holistic development to prepare students for a successful future."
+/>
 
         {/* Cards */}
 
