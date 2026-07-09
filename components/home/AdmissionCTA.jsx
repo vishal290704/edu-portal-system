@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 
 export default function AdmissionCTA() {
   return (
-    <section className="section-padding bg-[#0F4C81] text-white">
+    <section className="section-padding bg-[#0F4C81] text-white pt-5 pb-5">
       <Container>
 
         <div className="mx-auto max-w-4xl text-center">
@@ -45,7 +45,7 @@ export default function AdmissionCTA() {
               <Button
                 size="lg"
                 variant="outline"
-                className="border-white text-white hover:bg-white hover:text-[#0F4C81]"
+                className="border-white text-[#0F4C81] hover:bg-white hover:text-[#0F4C81]"
               >
                 Contact Us
               </Button>
@@ -59,7 +59,7 @@ export default function AdmissionCTA() {
 
               <Phone className="h-5 w-5" />
 
-              <span>+91 98765 43210</span>
+              <span>+91 9653087078</span>
 
             </div>
 
@@ -69,7 +69,7 @@ export default function AdmissionCTA() {
 
               <MapPin className="h-5 w-5" />
 
-              <span>Dynamic English School, Ghaziabad</span>
+              <span>Dynamic English School, Phulwariya, Varanasi, Uttar Pradesh</span>
 
             </div>
 
