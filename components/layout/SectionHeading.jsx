@@ -4,13 +4,12 @@ export default function SectionHeading({
   highlight,
   description,
   align = "center",
+  light = false,
 }) {
   return (
     <div
       className={`mb-16 max-w-3xl ${
-        align === "center"
-          ? "mx-auto text-center"
-          : "text-left"
+        align === "center" ? "mx-auto text-center" : "text-left"
       }`}
     >
       {/* Badge */}
@@ -21,11 +20,19 @@ export default function SectionHeading({
 
       {/* Main Heading */}
 
-      <h2 className="heading-font mt-6 text-4xl font-extrabold leading-tight text-slate-900 md:text-5xl">
+      <h2
+        className={`heading-font mt-6 text-4xl font-extrabold leading-tight md:text-5xl ${
+          light ? "text-white" : "text-slate-900"
+        }`}
+      >
         {title}
 
         {highlight && (
-          <span className="mt-2 block text-[#0F4C81]">
+          <span
+            className={`mt-2 block ${
+              light ? "text-blue-200" : "text-[#0F4C81]"
+            }`}
+          >
             {highlight}
           </span>
         )}
@@ -34,7 +41,11 @@ export default function SectionHeading({
       {/* Description */}
 
       {description && (
-        <p className="mt-6 text-lg leading-8 text-slate-600">
+        <p
+          className={`mt-6 text-lg leading-8 ${
+            light ? "text-white/80" : "text-slate-600"
+          }`}
+        >
           {description}
         </p>
       )}

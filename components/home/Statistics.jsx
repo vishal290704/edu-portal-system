@@ -17,38 +17,31 @@ export default function Statistics() {
   return (
     <section
       ref={ref}
-      className="section-padding bg-[#0F4C81] text-white"
+      className="section-padding bg-[#0F4C81] text-white pt-5 pb-5"
     >
       <Container>
-
         <SectionHeading
           badge="OUR ACHIEVEMENTS"
           title="Building Bright"
           highlight="Futures Every Day"
           description="Our commitment to quality education has helped thousands of students achieve academic excellence."
+          light
         />
 
         <div className="mt-16 grid gap-8 md:grid-cols-2 xl:grid-cols-4">
-
           {statistics.map((item) => {
-
             const Icon = item.icon;
 
             return (
-
               <div
                 key={item.title}
                 className="rounded-3xl bg-white/10 p-8 text-center backdrop-blur-sm"
               >
-
                 <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-white/20">
-
                   <Icon className="h-8 w-8" />
-
                 </div>
 
                 <h2 className="text-5xl font-bold">
-
                   {inView && (
                     <CountUp
                       end={item.value}
@@ -56,23 +49,13 @@ export default function Statistics() {
                       suffix={item.suffix}
                     />
                   )}
-
                 </h2>
 
-                <p className="mt-3 text-white/80">
-
-                  {item.title}
-
-                </p>
-
+                <p className="mt-3 text-white/80">{item.title}</p>
               </div>
-
             );
-
           })}
-
         </div>
-
       </Container>
     </section>
   );
