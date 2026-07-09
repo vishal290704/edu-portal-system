@@ -7,7 +7,7 @@ import SectionHeading from "../layout/SectionHeading";
 
 export default function WhyChooseUs() {
   return (
-    <section className="section-padding bg-white">
+    <section className="section-padding bg-white pt-3">
       <Container>
 
         {/* Heading */}
