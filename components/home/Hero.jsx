@@ -53,15 +53,39 @@ export default function Hero() {
 
         {/* Right */}
 
-        <div className="relative">
+        {/* Right */}
+
+        <div className="relative flex justify-center">
           <Image
             src="/images/hero-school.jpeg"
             alt="School Building"
             width={700}
             height={700}
             priority
-            className="rounded-3xl shadow-2xl"
+            className="rounded-3xl shadow-2xl object-cover"
           />
+
+          {/* Experience Card */}
+
+          <div className="absolute -left-6 top-10 rounded-2xl bg-white px-5 py-4 shadow-2xl border">
+            <p className="text-3xl">🏫</p>
+
+            <h3 className="mt-2 text-lg font-bold text-[#0F4C81]">18+ Years</h3>
+
+            <p className="text-sm text-slate-500">Excellence in Education</p>
+          </div>
+
+          {/* Result Card */}
+
+          <div className="absolute -right-6 bottom-12 rounded-2xl bg-white px-5 py-4 shadow-2xl border">
+            <p className="text-3xl">🏆</p>
+
+            <h3 className="mt-2 text-lg font-bold text-[#0F4C81]">
+              90% Result
+            </h3>
+
+            <p className="text-sm text-slate-500">Academic Success</p>
+          </div>
         </div>
       </Container>
     </section>
