@@ -8,7 +8,7 @@ import Statistics from "@/components/home/Statistics";
 import Leadership from "@/components/home/Leadership";
 import EventsPreview from "@/components/home/Events/EventsPreview";
 import AdmissionCTA from "@/components/home/AdmissionCTA";
-
+import Footer from "@/components/layout/Footer";
 export default function Home() {
   return (
     <>
@@ -22,6 +22,7 @@ export default function Home() {
       <Leadership />
       <EventsPreview />
       <AdmissionCTA />
+      <Footer />
     </>
   );
 }
