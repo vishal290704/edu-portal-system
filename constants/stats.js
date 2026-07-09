@@ -1,18 +1,22 @@
 export const stats = [
   {
-    value: "18+",
+    end: 25,
+    suffix: "+",
     label: "Years of Excellence",
   },
   {
-    value: "2000+",
+    end: 2000,
+    suffix: "+",
     label: "Students",
   },
   {
-    value: "25+",
-    label: "Qualified Faculty",
+    end: 150,
+    suffix: "+",
+    label: "Faculty",
   },
   {
-    value: "90%",
+    end: 98,
+    suffix: "%",
     label: "Board Results",
   },
 ];
