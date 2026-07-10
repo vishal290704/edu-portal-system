@@ -16,7 +16,7 @@ export default function PageHero({
       {/* Background Image */}
 
       <Image
-        src={image}
+        src="/logos/marg-ai.png"
         alt={title}
         fill
         priority
