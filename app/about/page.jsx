@@ -1,6 +1,7 @@
 import PageHero from "@/components/common/PageHero";
 import SchoolStory from "@/components/about/SchoolStory";
 import VisionMission from "@/components/about/VisionMission";
+import CoreValues from "@/components/about/CoreValues";
 
 export default function AboutPage() {
   return (
@@ -15,6 +16,7 @@ export default function AboutPage() {
       <SchoolStory />
 
       <VisionMission />
+      <CoreValues/>
     </>
   );
 }
