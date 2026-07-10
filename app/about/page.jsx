@@ -1,4 +1,5 @@
 import PageHero from "@/components/common/PageHero";
+import SchoolStory from "@/components/about/SchoolStory";
 
 export default function AboutPage() {
   return (
@@ -9,6 +10,8 @@ export default function AboutPage() {
         image="/images/hero-school.jpg"
         breadcrumb="About"
       />
+
+      <SchoolStory />
     </>
   );
 }
