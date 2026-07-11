@@ -3,6 +3,7 @@ import SchoolStory from "@/components/about/SchoolStory";
 import VisionMission from "@/components/about/VisionMission";
 import CoreValues from "@/components/about/CoreValues";
 import Leadership from "@/components/about/Leadership";
+import AdmissionCTA from "@/components/home/AdmissionCTA";
 
 export default function AboutPage() {
   return (
@@ -19,6 +20,7 @@ export default function AboutPage() {
       <VisionMission />
       <CoreValues/>
       <Leadership/>
+      <AdmissionCTA />
     </>
   );
 }
