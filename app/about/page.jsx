@@ -2,6 +2,7 @@ import PageHero from "@/components/common/PageHero";
 import SchoolStory from "@/components/about/SchoolStory";
 import VisionMission from "@/components/about/VisionMission";
 import CoreValues from "@/components/about/CoreValues";
+import Leadership from "@/components/about/Leadership";
 
 export default function AboutPage() {
   return (
@@ -17,6 +18,7 @@ export default function AboutPage() {
 
       <VisionMission />
       <CoreValues/>
+      <Leadership/>
     </>
   );
 }

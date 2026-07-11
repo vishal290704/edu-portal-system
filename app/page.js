@@ -16,10 +16,11 @@ export default function Home() {
       <Hero />
       <WhyChooseUs />
       <About />
+      <Leadership />
       <Programs />
       <Facilities />
       <Statistics />
-      <Leadership />
+      
       <EventsPreview />
       <AdmissionCTA />
       <Footer />

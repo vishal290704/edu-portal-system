@@ -255,7 +255,7 @@ export default function Footer() {
 
       <p className="text-sm uppercase tracking-[0.25em] pt-2 text-slate-500">
 
-        Designed • Developed • Deployed
+        Designed • Developed • Deployed BY
 
       </p>
 
