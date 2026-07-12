@@ -1,6 +1,9 @@
 import PageHero from "@/components/common/PageHero";
 import AcademicOverview from "@/components/academics/AcademicOverview";
 import AcademicPrograms from "@/components/academics/AcademicPrograms";
+import StudentLife from "@/components/academics/StudentLife";
+import AdmissionCTA from "@/components/home/AdmissionCTA";
+import Footer from "@/components/layout/Footer";
 
 export const metadata = {
   title: "Academics | Dynamic English School",
@@ -19,6 +22,8 @@ export default function AcademicsPage() {
 
       <AcademicOverview />
       <AcademicPrograms/>
+      <StudentLife/>
+      <AdmissionCTA/>
     </>
   );
 }
