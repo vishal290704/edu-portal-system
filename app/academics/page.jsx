@@ -18,7 +18,6 @@ export default function AcademicsPage() {
         title="Academics"
         image={"/images/hero-school.jpeg"}
         subtitle="Building Strong Foundations for Lifelong Learning"
-        backgroundImage="/images/academics/hero.jpg"
         breadcrumb={"Academics"}
       />
 
