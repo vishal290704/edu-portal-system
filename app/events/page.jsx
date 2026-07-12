@@ -1,13 +1,10 @@
 import PageHero from "@/components/common/PageHero";
+import CTA from "@/components/common/CTA";
+
 import EventsStory from "@/components/events/EventsStory";
+import MemoriesGallery from "@/components/events/MemoriesGallery";
+import AdmissionCTA from "@/components/home/AdmissionCTA";
 import FeaturedEvents from "@/components/events/FeaturedEvents";
-
-
-export const metadata = {
-  title: "Events | Dynamic English School",
-  description:
-    "Explore the celebrations, cultural activities, and memorable moments at Dynamic English School.",
-};
 
 export default function EventsPage() {
   return (
@@ -18,8 +15,13 @@ export default function EventsPage() {
         image="/images/hero-school.jpeg"
         breadcrumb={"Events"}
       />
-      <FeaturedEvents/>
-      <EventsStory/>
+
+        <FeaturedEvents/>
+      <EventsStory />
+
+      <MemoriesGallery />
+
+      <AdmissionCTA />
     </>
   );
 }
