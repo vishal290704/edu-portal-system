@@ -11,7 +11,7 @@ export default function AboutPage() {
       <PageHero
         title="About Dynamic English School"
         subtitle="Empowering young minds through quality education, strong values, and holistic development since our establishment."
-        image="/images/hero-school.jpg"
+        image="/images/hero-school.jpeg"
         breadcrumb="About"
       />
 
