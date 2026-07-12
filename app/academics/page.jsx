@@ -18,6 +18,7 @@ export default function AcademicsPage() {
         title="Academics"
         subtitle="Building Strong Foundations for Lifelong Learning"
         backgroundImage="/images/academics/hero.jpg"
+        breadcrumb={"Academics"}
       />
 
       <AcademicOverview />
