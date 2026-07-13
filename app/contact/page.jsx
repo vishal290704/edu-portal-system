@@ -1,4 +1,5 @@
 import ContactHero from "@/components/contact/ContactHero";
+import ContactInfo from "@/components/contact/ContactInfo";
 
 
 export const metadata = {
@@ -11,6 +12,7 @@ export default function ContactPage() {
   return (
     <main className="overflow-hidden">
       <ContactHero />
+      <ContactInfo/>
 
     </main>
   );
