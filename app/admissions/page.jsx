@@ -1,5 +1,6 @@
 import AdmissionHero from "@/components/admissions/AdmissionHero";
 import AdmissionInfo from "@/components/admissions/AdmissionInfo";
+import FeeStructure from "@/components/admissions/FeeStructure";
 
 
 export const metadata = {
@@ -13,6 +14,7 @@ export default function AdmissionsPage() {
     <main className="overflow-hidden">
       <AdmissionHero />
       <AdmissionInfo/>
+      <FeeStructure/>
    
     </main>
   );
