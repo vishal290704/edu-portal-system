@@ -1,3 +1,4 @@
+import ContactForm from "@/components/contact/ContactForm";
 import ContactHero from "@/components/contact/ContactHero";
 import ContactInfo from "@/components/contact/ContactInfo";
 
@@ -13,6 +14,7 @@ export default function ContactPage() {
     <main className="overflow-hidden">
       <ContactHero />
       <ContactInfo/>
+      <ContactForm/>
 
     </main>
   );
