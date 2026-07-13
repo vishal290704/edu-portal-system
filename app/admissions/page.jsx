@@ -1,0 +1,17 @@
+import AdmissionHero from "@/components/admissions/AdmissionHero";
+
+
+export const metadata = {
+  title: "Admissions | Dynamic English School",
+  description:
+    "Learn about the admission process, fee structure, required documents, and join Dynamic English School.",
+};
+
+export default function AdmissionsPage() {
+  return (
+    <main className="overflow-hidden">
+      <AdmissionHero />
+   
+    </main>
+  );
+}
