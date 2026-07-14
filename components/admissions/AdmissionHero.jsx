@@ -85,7 +85,7 @@ export default function AdmissionHero() {
             <div className="overflow-hidden rounded-3xl shadow-2xl">
 
               <Image
-                src="/images/admissions/hero.jpg"
+                src="/images/hero-school.jpeg"
                 alt="Admissions"
                 width={700}
                 height={550}
