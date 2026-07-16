@@ -1,3 +1,5 @@
-export default function AdminLayout({ children }) {
-  return <div>{children}</div>;
+import AdminLayout from "@/components/admin/layout/AdminLayout";
+
+export default function Layout({ children }) {
+  return <AdminLayout>{children}</AdminLayout>;
 }
