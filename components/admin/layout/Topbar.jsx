@@ -1,8 +1,29 @@
 "use client";
 
-import { Bell, Search, UserCircle2 } from "lucide-react";
+import {
+  Bell,
+  Search,
+  UserCircle2,
+  LogOut,
+  User,
+  Settings,
+  KeyRound,
+  ChevronDown,
+} from "lucide-react";
 
-export default function Topbar() {
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+import { logout } from "@/lib/logout";
+
+export default function Topbar({ user }) {
   const today = new Date().toLocaleDateString("en-IN", {
     weekday: "long",
     day: "numeric",
@@ -12,19 +33,13 @@ export default function Topbar() {
 
   return (
     <header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b bg-white px-8">
-
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">
-          Dashboard
-        </h1>
+        <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
 
-        <p className="mt-1 text-sm text-slate-500">
-          {today}
-        </p>
+        <p className="mt-1 text-sm text-slate-500">{today}</p>
       </div>
 
       <div className="flex items-center gap-4">
-
         <div className="relative hidden md:block">
           <Search
             size={18}
@@ -39,18 +54,67 @@ export default function Topbar() {
         </div>
 
         <button className="rounded-xl border p-2 hover:bg-slate-100">
-          <Bell size={20} />
-        </button>
+  <Bell size={20} />
+</button>
 
-        <button className="flex items-center gap-2 rounded-xl border px-3 py-2 hover:bg-slate-100">
-          <UserCircle2 size={28} />
-          <span className="hidden font-medium md:block">
-            Admin
-          </span>
-        </button>
+<DropdownMenu>
+  <DropdownMenuTrigger className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-2 transition hover:bg-slate-100">
+    <UserCircle2 size={32} className="text-slate-600" />
 
+    <div className="hidden text-left md:block">
+      <p className="font-semibold text-slate-900">
+        {user.username}
+      </p>
+
+      <span className="inline-flex rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold uppercase text-blue-700">
+        {user.role.replace("_", " ")}
+      </span>
+    </div>
+
+    <ChevronDown size={16} className="text-slate-500" />
+  </DropdownMenuTrigger>
+
+  <DropdownMenuContent align="end" className="w-64">
+  <DropdownMenuGroup>
+    <DropdownMenuLabel>
+      <div className="flex flex-col">
+        <span className="font-semibold">{user.username}</span>
+        <span className="text-xs text-muted-foreground">
+          {user.role.replace("_", " ")}
+        </span>
       </div>
+    </DropdownMenuLabel>
+  </DropdownMenuGroup>
 
+  <DropdownMenuSeparator />
+
+    <DropdownMenuItem>
+      <User className="mr-2 h-4 w-4" />
+      My Profile
+    </DropdownMenuItem>
+
+    <DropdownMenuItem>
+      <KeyRound className="mr-2 h-4 w-4" />
+      Change Password
+    </DropdownMenuItem>
+
+    <DropdownMenuItem>
+      <Settings className="mr-2 h-4 w-4" />
+      Settings
+    </DropdownMenuItem>
+
+    <DropdownMenuSeparator />
+
+    <DropdownMenuItem
+      variant="destructive"
+      onClick={logout}
+    >
+      <LogOut className="mr-2 h-4 w-4" />
+      Logout
+    </DropdownMenuItem>
+  </DropdownMenuContent>
+</DropdownMenu>
+      </div>
     </header>
   );
 }
