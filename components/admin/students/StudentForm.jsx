@@ -1,102 +1,180 @@
 "use client";
 
+import { useState } from "react";
+import { createStudent } from "@/app/actions/studentActions";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export default function StudentForm({
-  onSubmit,
   onCancel,
+  onSuccess,
   initialData = {},
 }) {
+  const [loading, setLoading] = useState(false);
+
+  const [formData, setFormData] = useState({
+    admissionNo: initialData.admissionNo || "",
+    rollNo: initialData.rollNo || "",
+    firstName: initialData.firstName || "",
+    lastName: initialData.lastName || "",
+    fatherName: initialData.fatherName || "",
+    motherName: initialData.motherName || "",
+    className: initialData.className || "",
+    section: initialData.section || "",
+    dob: initialData.dob?.slice(0, 10) || "",
+    mobile: initialData.mobile || "",
+    address: initialData.address || "",
+    gender: initialData.gender || "",
+    status: initialData.status || "Active",
+  });
+
+  function handleChange(e) {
+    setFormData((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+
+    setLoading(true);
+
+    const result = await createStudent(formData);
+
+    setLoading(false);
+
+    if (result.success) {
+      if (onSuccess) onSuccess();
+    } else {
+      alert(result.message);
+    }
+  }
+
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        if (onSubmit) onSubmit();
-      }}
-      className="space-y-5"
-    >
+    <form onSubmit={handleSubmit} className="space-y-5">
       <div className="grid gap-5 md:grid-cols-2">
         <div>
-          <Label htmlFor="admissionNo">Admission No.</Label>
+          <Label>Admission No.</Label>
           <Input
-            id="admissionNo"
-            defaultValue={initialData.admissionNo}
+            name="admissionNo"
+            value={formData.admissionNo}
+            onChange={handleChange}
             placeholder="DES24001"
           />
         </div>
 
         <div>
-          <Label htmlFor="studentName">Student Name</Label>
+          <Label>Roll No.</Label>
           <Input
-            id="studentName"
-            defaultValue={initialData.name}
-            placeholder="Enter student name"
+            name="rollNo"
+            value={formData.rollNo}
+            onChange={handleChange}
+            placeholder="01"
           />
         </div>
 
         <div>
-          <Label htmlFor="fatherName">Father's Name</Label>
+          <Label>First Name</Label>
           <Input
-            id="fatherName"
-            defaultValue={initialData.fatherName}
-            placeholder="Enter father's name"
+            name="firstName"
+            value={formData.firstName}
+            onChange={handleChange}
           />
         </div>
 
         <div>
-          <Label htmlFor="motherName">Mother's Name</Label>
+          <Label>Last Name</Label>
           <Input
-            id="motherName"
-            defaultValue={initialData.motherName}
-            placeholder="Enter mother's name"
+            name="lastName"
+            value={formData.lastName}
+            onChange={handleChange}
           />
         </div>
 
         <div>
-          <Label htmlFor="class">Class</Label>
+          <Label>Father's Name</Label>
           <Input
-            id="class"
-            defaultValue={initialData.class}
-            placeholder="Class"
+            name="fatherName"
+            value={formData.fatherName}
+            onChange={handleChange}
           />
         </div>
 
         <div>
-          <Label htmlFor="section">Section</Label>
+          <Label>Mother's Name</Label>
           <Input
-            id="section"
-            defaultValue={initialData.section}
-            placeholder="Section"
+            name="motherName"
+            value={formData.motherName}
+            onChange={handleChange}
           />
         </div>
 
         <div>
-          <Label htmlFor="dob">Date of Birth</Label>
+          <Label>Class</Label>
           <Input
-            id="dob"
+            name="className"
+            value={formData.className}
+            onChange={handleChange}
+          />
+        </div>
+
+        <div>
+          <Label>Section</Label>
+          <Input
+            name="section"
+            value={formData.section}
+            onChange={handleChange}
+          />
+        </div>
+
+        <div>
+          <Label>Date of Birth</Label>
+          <Input
             type="date"
-            defaultValue={initialData.dob}
+            name="dob"
+            value={formData.dob}
+            onChange={handleChange}
           />
         </div>
 
         <div>
-          <Label htmlFor="mobile">Mobile</Label>
+          <Label>Gender</Label>
           <Input
-            id="mobile"
-            defaultValue={initialData.mobile}
-            placeholder="9876543210"
+            name="gender"
+            value={formData.gender}
+            onChange={handleChange}
+            placeholder="Male / Female"
+          />
+        </div>
+
+        <div>
+          <Label>Mobile</Label>
+          <Input
+            name="mobile"
+            value={formData.mobile}
+            onChange={handleChange}
+          />
+        </div>
+
+        <div>
+          <Label>Status</Label>
+          <Input
+            name="status"
+            value={formData.status}
+            onChange={handleChange}
           />
         </div>
       </div>
 
       <div>
-        <Label htmlFor="address">Address</Label>
+        <Label>Address</Label>
         <Input
-          id="address"
-          defaultValue={initialData.address}
-          placeholder="Enter address"
+          name="address"
+          value={formData.address}
+          onChange={handleChange}
         />
       </div>
 
@@ -105,12 +183,13 @@ export default function StudentForm({
           type="button"
           variant="outline"
           onClick={onCancel}
+          disabled={loading}
         >
           Cancel
         </Button>
 
-        <Button type="submit">
-          Save Student
+        <Button type="submit" disabled={loading}>
+          {loading ? "Saving..." : "Save Student"}
         </Button>
       </div>
     </form>
