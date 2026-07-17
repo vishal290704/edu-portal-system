@@ -1,11 +1,16 @@
 import mongoose from "mongoose";
 
-const StudentSchema = new mongoose.Schema(
+const studentSchema = new mongoose.Schema(
   {
     admissionNo: {
       type: String,
       required: true,
       unique: true,
+      trim: true,
+    },
+
+    rollNo: {
+      type: String,
       trim: true,
     },
 
@@ -20,6 +25,24 @@ const StudentSchema = new mongoose.Schema(
       trim: true,
     },
 
+    gender: {
+      type: String,
+      enum: ["Male", "Female", "Other"],
+      required: true,
+    },
+
+    dob: Date,
+
+    className: {
+      type: String,
+      required: true,
+    },
+
+    section: {
+      type: String,
+      default: "A",
+    },
+
     fatherName: {
       type: String,
       required: true,
@@ -31,31 +54,14 @@ const StudentSchema = new mongoose.Schema(
       trim: true,
     },
 
-    class: {
-      type: String,
-      required: true,
-    },
-
-    section: {
-      type: String,
-      default: "A",
-    },
-
-    gender: {
-      type: String,
-      enum: ["Male", "Female", "Other"],
-    },
-
-    dob: {
-      type: Date,
-    },
-
     mobile: {
       type: String,
+      trim: true,
     },
 
     address: {
       type: String,
+      trim: true,
     },
 
     status: {
@@ -70,4 +76,4 @@ const StudentSchema = new mongoose.Schema(
 );
 
 export default mongoose.models.Student ||
-  mongoose.model("Student", StudentSchema);
+  mongoose.model("Student", studentSchema);
