@@ -15,7 +15,7 @@ export async function createStudent(data) {
 
     return {
       success: true,
-      data: student,
+      data: JSON.parse(JSON.stringify(student)),
     };
   } catch (error) {
     console.error("Create Student Error:", error);
