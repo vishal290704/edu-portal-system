@@ -7,6 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+import FormSection from "@/components/admin/FormSection";
+
+import {
+  UserRound,
+  Users,
+  GraduationCap,
+} from "lucide-react";
+
 const getFormData = (student = {}) => ({
   admissionNo: student.admissionNo || "",
   rollNo: student.rollNo || "",
@@ -71,7 +79,7 @@ useEffect(() => {
 }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form onSubmit={handleSubmit} className="space-y-8">
       <div className="grid gap-5 md:grid-cols-2">
         <div>
           <Label>Admission No.</Label>
