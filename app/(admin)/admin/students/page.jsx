@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Plus, Search } from "lucide-react";
 import StudentDialog from "@/components/admin/students/StudentDialog";
 import { getStudents } from "@/app/actions/studentActions";
+import StudentTable from "@/components/admin/students/StudentTable";
 
 export default function StudentsPage() {
   const [students, setStudents] = useState([]);
@@ -28,6 +29,10 @@ export default function StudentsPage() {
   const handleEdit = (student) => {
     setSelectedStudent(student);
     setOpen(true);
+  };
+
+  const handleDelete = (student) => {
+    console.log(student);
   };
 
   const filteredStudents = students.filter((student) => {
@@ -79,64 +84,11 @@ export default function StudentsPage() {
 
       {/* Table */}
 
-      <div className="overflow-hidden rounded-2xl border bg-white shadow-sm">
-        <table className="w-full">
-          <thead className="bg-slate-100">
-            <tr>
-              <th className="px-6 py-4 text-left">Admission No.</th>
-
-              <th className="px-6 py-4 text-left">Student Name</th>
-
-              <th className="px-6 py-4 text-left">Class</th>
-
-              <th className="px-6 py-4 text-left">Section</th>
-
-              <th className="px-6 py-4 text-left">Mobile</th>
-
-              <th className="px-6 py-4 text-center">Actions</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {filteredStudents.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="py-8 text-center text-slate-500">
-                  No students found.
-                </td>
-              </tr>
-            ) : (
-              filteredStudents.map((student) => (
-                <tr key={student._id} className="border-t hover:bg-slate-50">
-                  <td className="px-6 py-4">{student.admissionNo}</td>
-
-                  <td className="px-6 py-4 font-medium">
-                    {student.firstName} {student.lastName}
-                  </td>
-
-                  <td className="px-6 py-4">{student.className}</td>
-
-                  <td className="px-6 py-4">{student.section}</td>
-
-                  <td className="px-6 py-4">{student.mobile}</td>
-
-                  <td className="space-x-3 px-6 py-4 text-center">
-                    <button
-                      onClick={() => handleEdit(student)}
-                      className="text-blue-600 hover:underline"
-                    >
-                      Edit
-                    </button>
-
-                    <button className="text-red-600 hover:underline">
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+      <StudentTable
+        students={filteredStudents}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+      />
 
       <StudentDialog
         open={open}

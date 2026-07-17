@@ -1,17 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { createStudent } from "@/app/actions/studentActions";
+import { createStudent, updateStudent } from "@/app/actions/studentActions";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export default function StudentForm({
-  onCancel,
-  onSuccess,
-  initialData = {},
-}) {
+export default function StudentForm({ onCancel, onSuccess, initialData = {} }) {
   const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -42,7 +38,13 @@ export default function StudentForm({
 
     setLoading(true);
 
-    const result = await createStudent(formData);
+    let result;
+
+    if (initialData?._id) {
+      result = await updateStudent(initialData._id, formData);
+    } else {
+      result = await createStudent(formData);
+    }
 
     setLoading(false);
 
@@ -189,7 +191,13 @@ export default function StudentForm({
         </Button>
 
         <Button type="submit" disabled={loading}>
-          {loading ? "Saving..." : "Save Student"}
+          {loading
+            ? initialData?._id
+              ? "Updating..."
+              : "Saving..."
+            : initialData?._id
+              ? "Update Student"
+              : "Save Student"}
         </Button>
       </div>
     </form>

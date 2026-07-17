@@ -9,13 +9,13 @@ export async function createStudent(data) {
   try {
     await connectDB();
 
-    const student = await Student.create(data);
+    await Student.create(data);
 
     revalidatePath("/admin/students");
 
     return {
       success: true,
-      data: JSON.parse(JSON.stringify(student)),
+      message: "Student created successfully.",
     };
   } catch (error) {
     console.error("Create Student Error:", error);
@@ -26,6 +26,32 @@ export async function createStudent(data) {
         message: "Admission Number already exists.",
       };
     }
+
+    return {
+      success: false,
+      message: "Something went wrong.",
+    };
+  }
+}
+
+// Update Student
+export async function updateStudent(id, data) {
+  try {
+    await connectDB();
+
+    await Student.findByIdAndUpdate(id, data, {
+      new: true,
+      runValidators: true,
+    });
+
+    revalidatePath("/admin/students");
+
+    return {
+      success: true,
+      message: "Student updated successfully.",
+    };
+  } catch (error) {
+    console.error("Update Student Error:", error);
 
     return {
       success: false,
