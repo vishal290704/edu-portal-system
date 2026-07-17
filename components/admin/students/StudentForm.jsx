@@ -7,9 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export default function StudentForm({ onCancel, onSuccess, initialData = {} }) {
-const [loading, setLoading] = useState(false);
-
 const getFormData = (student = {}) => ({
   admissionNo: student.admissionNo || "",
   rollNo: student.rollNo || "",
@@ -25,6 +22,11 @@ const getFormData = (student = {}) => ({
   gender: student.gender || "",
   status: student.status || "Active",
 });
+
+export default function StudentForm({ onCancel, onSuccess, initialData = {} }) {
+const [loading, setLoading] = useState(false);
+
+
 
 const [formData, setFormData] = useState(getFormData());
 
@@ -42,10 +44,11 @@ useEffect(() => {
   }
 
   async function handleSubmit(e) {
-    e.preventDefault();
+  e.preventDefault();
 
-    setLoading(true);
+  setLoading(true);
 
+  try {
     let result;
 
     if (initialData?._id) {
@@ -54,14 +57,18 @@ useEffect(() => {
       result = await createStudent(formData);
     }
 
-    setLoading(false);
-
     if (result.success) {
-      if (onSuccess) onSuccess();
+      onSuccess?.();
     } else {
       alert(result.message);
     }
+  } catch (error) {
+    console.error(error);
+    alert("Something went wrong.");
+  } finally {
+    setLoading(false);
   }
+}
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
