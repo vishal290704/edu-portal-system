@@ -1,4 +1,8 @@
+"use client";
+
+import { useState } from "react";
 import { Plus, Search } from "lucide-react";
+import StudentDialog from "@/components/admin/students/StudentDialog";
 
 const students = [
   {
@@ -28,9 +32,21 @@ const students = [
 ];
 
 export default function StudentsPage() {
+  const [open, setOpen] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+
+  const handleAdd = () => {
+    setSelectedStudent(null);
+    setOpen(true);
+  };
+
+  const handleEdit = (student) => {
+    setSelectedStudent(student);
+    setOpen(true);
+  };
+
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold">Students</h2>
@@ -39,13 +55,15 @@ export default function StudentsPage() {
           </p>
         </div>
 
-        <button className="flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-white transition hover:bg-blue-700">
+        <button
+          onClick={handleAdd}
+          className="flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-white transition hover:bg-blue-700"
+        >
           <Plus size={18} />
           Add Student
         </button>
       </div>
 
-      {/* Search */}
       <div className="relative max-w-sm">
         <Search
           size={18}
@@ -59,7 +77,6 @@ export default function StudentsPage() {
         />
       </div>
 
-      {/* Table */}
       <div className="overflow-hidden rounded-2xl border bg-white shadow-sm">
         <table className="w-full">
           <thead className="bg-slate-100">
@@ -99,8 +116,11 @@ export default function StudentsPage() {
                   {student.mobile}
                 </td>
 
-                <td className="px-6 py-4 text-center">
-                  <button className="mr-3 text-blue-600 hover:underline">
+                <td className="space-x-3 px-6 py-4 text-center">
+                  <button
+                    onClick={() => handleEdit(student)}
+                    className="text-blue-600 hover:underline"
+                  >
                     Edit
                   </button>
 
@@ -113,6 +133,12 @@ export default function StudentsPage() {
           </tbody>
         </table>
       </div>
+
+      <StudentDialog
+        open={open}
+        onOpenChange={setOpen}
+        student={selectedStudent}
+      />
     </div>
   );
 }
