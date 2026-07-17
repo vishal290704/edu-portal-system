@@ -3,7 +3,10 @@
 import { useEffect, useState } from "react";
 import { Plus, Search } from "lucide-react";
 import StudentDialog from "@/components/admin/students/StudentDialog";
-import { getStudents } from "@/app/actions/studentActions";
+import {
+  getStudents,
+  deleteStudent,
+} from "@/app/actions/studentActions";
 import StudentTable from "@/components/admin/students/StudentTable";
 
 export default function StudentsPage() {
@@ -31,9 +34,26 @@ export default function StudentsPage() {
     setOpen(true);
   };
 
-  const handleDelete = (student) => {
-    console.log(student);
-  };
+const handleDelete = async (student) => {
+  const confirmed = window.confirm(
+    `Are you sure you want to delete ${student.firstName} ${student.lastName}?`
+  );
+
+  if (!confirmed) return;
+
+  try {
+    const result = await deleteStudent(student._id);
+
+    if (result.success) {
+      await loadStudents();
+    } else {
+      alert(result.message);
+    }
+  } catch (error) {
+    console.error(error);
+    alert("Something went wrong.");
+  }
+};
 
   const filteredStudents = students.filter((student) => {
     const fullName =

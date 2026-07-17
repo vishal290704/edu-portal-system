@@ -60,6 +60,29 @@ export async function updateStudent(id, data) {
   }
 }
 
+//delete student
+export async function deleteStudent(id) {
+  try {
+    await connectDB();
+
+    await Student.findByIdAndDelete(id);
+
+    revalidatePath("/admin/students");
+
+    return {
+      success: true,
+      message: "Student deleted successfully.",
+    };
+  } catch (error) {
+    console.error("Delete Student Error:", error);
+
+    return {
+      success: false,
+      message: "Something went wrong.",
+    };
+  }
+}
+
 // Get All Students
 export async function getStudents() {
   try {
