@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createStudent, updateStudent } from "@/app/actions/studentActions";
 
 import { Button } from "@/components/ui/button";
@@ -8,23 +8,31 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export default function StudentForm({ onCancel, onSuccess, initialData = {} }) {
-  const [loading, setLoading] = useState(false);
+const [loading, setLoading] = useState(false);
 
-  const [formData, setFormData] = useState({
-    admissionNo: initialData.admissionNo || "",
-    rollNo: initialData.rollNo || "",
-    firstName: initialData.firstName || "",
-    lastName: initialData.lastName || "",
-    fatherName: initialData.fatherName || "",
-    motherName: initialData.motherName || "",
-    className: initialData.className || "",
-    section: initialData.section || "",
-    dob: initialData.dob?.slice(0, 10) || "",
-    mobile: initialData.mobile || "",
-    address: initialData.address || "",
-    gender: initialData.gender || "",
-    status: initialData.status || "Active",
-  });
+const getFormData = (student = {}) => ({
+  admissionNo: student.admissionNo || "",
+  rollNo: student.rollNo || "",
+  firstName: student.firstName || "",
+  lastName: student.lastName || "",
+  fatherName: student.fatherName || "",
+  motherName: student.motherName || "",
+  className: student.className || "",
+  section: student.section || "",
+  dob: student.dob?.slice(0, 10) || "",
+  mobile: student.mobile || "",
+  address: student.address || "",
+  gender: student.gender || "",
+  status: student.status || "Active",
+});
+
+const [formData, setFormData] = useState(getFormData());
+
+useEffect(() => {
+  setFormData(getFormData(initialData));
+}, [initialData]);
+
+ 
 
   function handleChange(e) {
     setFormData((prev) => ({
