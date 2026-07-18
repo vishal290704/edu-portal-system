@@ -4,6 +4,7 @@ import { verifyToken } from "@/lib/jwt";
 export async function proxy(request) {
   const { pathname } = request.nextUrl;
 
+  // Public Routes
   if (
     pathname === "/login" ||
     pathname.startsWith("/api/auth") ||
@@ -13,19 +14,20 @@ export async function proxy(request) {
     return NextResponse.next();
   }
 
+  const token = request.cookies.get("des_token")?.value;
+
+  if (!token) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  const payload = await verifyToken(token);
+
+  if (!payload) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  // Admin Area
   if (pathname.startsWith("/admin")) {
-    const token = request.cookies.get("des_token")?.value;
-
-    if (!token) {
-      return NextResponse.redirect(new URL("/login", request.url));
-    }
-
-    const payload = await verifyToken(token);
-
-    if (!payload) {
-      return NextResponse.redirect(new URL("/login", request.url));
-    }
-
     if (
       payload.role !== "SUPER_ADMIN" &&
       payload.role !== "ADMIN"
@@ -34,9 +36,19 @@ export async function proxy(request) {
     }
   }
 
+  // Teacher Area
+  if (pathname.startsWith("/teacher")) {
+    if (payload.role !== "TEACHER") {
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: [
+    "/admin/:path*",
+    "/teacher/:path*",
+  ],
 };

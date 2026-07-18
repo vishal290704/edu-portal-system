@@ -45,7 +45,17 @@ export default function LoginForm() {
         return;
       }
 
-      router.push("/admin");
+      // Temporary role-based redirect
+      if (data.role === "SUPER_ADMIN" || data.role === "ADMIN") {
+        router.push("/admin");
+      } else if (data.role === "TEACHER") {
+        router.push("/teacher");
+      } else if (data.role === "STUDENT") {
+        router.push("/student");
+      } else {
+        router.push("/");
+      }
+
       router.refresh();
     } catch (err) {
       setError("Something went wrong.");
@@ -57,23 +67,14 @@ export default function LoginForm() {
   return (
     <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-xl">
       <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold">
-          Dynamic English School
-        </h1>
+        <h1 className="text-3xl font-bold">Dynamic English School</h1>
 
-        <p className="mt-2 text-sm text-gray-500">
-          Admin Login
-        </p>
+        <p className="mt-2 text-sm text-gray-500">Admin Login</p>
       </div>
 
-      <form
-        onSubmit={handleSubmit}
-        className="space-y-5"
-      >
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <label className="mb-2 block text-sm font-medium">
-            Username
-          </label>
+          <label className="mb-2 block text-sm font-medium">Username</label>
 
           <input
             type="text"
@@ -86,9 +87,7 @@ export default function LoginForm() {
         </div>
 
         <div>
-          <label className="mb-2 block text-sm font-medium">
-            Password
-          </label>
+          <label className="mb-2 block text-sm font-medium">Password</label>
 
           <div className="relative">
             <input
@@ -102,25 +101,15 @@ export default function LoginForm() {
 
             <button
               type="button"
-              onClick={() =>
-                setShowPassword(!showPassword)
-              }
+              onClick={() => setShowPassword(!showPassword)}
               className="absolute right-3 top-1/2 -translate-y-1/2"
             >
-              {showPassword ? (
-                <EyeOff size={20} />
-              ) : (
-                <Eye size={20} />
-              )}
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
           </div>
         </div>
 
-        {error && (
-          <p className="text-sm text-red-600">
-            {error}
-          </p>
-        )}
+        {error && <p className="text-sm text-red-600">{error}</p>}
 
         <button
           disabled={loading}
@@ -128,10 +117,7 @@ export default function LoginForm() {
         >
           {loading ? (
             <>
-              <Loader2
-                className="mr-2 animate-spin"
-                size={18}
-              />
+              <Loader2 className="mr-2 animate-spin" size={18} />
               Signing In...
             </>
           ) : (

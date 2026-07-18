@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { toggleUserStatus } from "@/app/actions/userActions";
+import { toast } from "sonner";
 
 import {
   AlertDialog,
@@ -33,10 +34,10 @@ export default function UserStatusDialog({
     setLoading(false);
 
     if (!result.success) {
-      alert(result.message); // Sonner later
+      toast.error(result.message); // Sonner later
       return;
     }
-
+    toast.success(result.message);
     onOpenChange(false);
     onSuccess?.();
   };

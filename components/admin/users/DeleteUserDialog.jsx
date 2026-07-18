@@ -5,7 +5,7 @@ import { useState } from "react";
 import { deleteUser } from "@/app/actions/userActions";
 
 import { Button } from "@/components/ui/button";
-
+import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,9 +33,10 @@ export default function DeleteUserDialog({
     setLoading(false);
 
     if (!result.success) {
-      alert(result.message); // Sonner later
+      toast.error(result.message);// Sonner later
       return;
     }
+    toast.success(result.message);
 
     onOpenChange(false);
     onSuccess?.();

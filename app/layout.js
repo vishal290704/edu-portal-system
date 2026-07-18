@@ -1,6 +1,7 @@
 import { Geist, Geist_Mono, Poppins } from "next/font/google";
 import "./globals.css";
 // import Script from "next/script";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-sans",
@@ -29,13 +30,13 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} antialiased`}
       >
-          
-    {/* <Script
+        {/* <Script
   src="https://sahay-ai-alpha.vercel.app/chatBot.js"
   data-owner-id="usr_127186549698724610"
   strategy="afterInteractive"
 /> */}
         {children}
+        <Toaster richColors position="top-right" closeButton />
       </body>
     </html>
   );

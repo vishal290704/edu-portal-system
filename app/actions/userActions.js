@@ -231,7 +231,7 @@ export async function getUsers() {
 
     return {
       success: true,
-       data: JSON.parse(JSON.stringify(users)),
+      data: JSON.parse(JSON.stringify(users)),
     };
   } catch (error) {
     console.error("Get Users Error:", error);
@@ -242,7 +242,6 @@ export async function getUsers() {
     };
   }
 }
-
 
 export async function toggleUserStatus(id) {
   try {
@@ -292,8 +291,80 @@ export async function toggleUserStatus(id) {
 
     return {
       success: false,
-      message:
-        error.message || "Failed to update user status.",
+      message: error.message || "Failed to update user status.",
+    };
+  }
+}
+
+
+// Reset User Password
+export async function resetUserPassword(formData) {
+  try {
+    await connectDB();
+
+    const currentUser = await getCurrentUser();
+
+    if (!currentUser) {
+      return {
+        success: false,
+        message: "Unauthorized.",
+      };
+    }
+
+    // Only SUPER_ADMIN can reset passwords
+    requireRole(currentUser, ["SUPER_ADMIN"]);
+
+    const id = formData.get("id");
+    const password = formData.get("password");
+    const confirmPassword = formData.get("confirmPassword");
+
+    if (!id) {
+      return {
+        success: false,
+        message: "User ID is required.",
+      };
+    }
+
+    if (!password || password.length < 6) {
+      return {
+        success: false,
+        message: "Password must be at least 6 characters.",
+      };
+    }
+
+    if (password !== confirmPassword) {
+      return {
+        success: false,
+        message: "Passwords do not match.",
+      };
+    }
+
+    const user = await User.findById(id);
+
+    if (!user) {
+      return {
+        success: false,
+        message: "User not found.",
+      };
+    }
+
+    user.password = await bcrypt.hash(password, 10);
+    user.mustChangePassword = true;
+
+    await user.save();
+
+    revalidatePath("/admin/users");
+
+    return {
+      success: true,
+      message: "Password reset successfully.",
+    };
+  } catch (error) {
+    console.error("Reset Password Error:", error);
+
+    return {
+      success: false,
+      message: error.message || "Failed to reset password.",
     };
   }
 }

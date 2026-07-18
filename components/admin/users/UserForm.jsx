@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toast } from "sonner";
 
 export default function UserForm({
   mode,
@@ -88,9 +89,10 @@ export default function UserForm({
     setLoading(false);
 
     if (!result.success) {
-      alert(result.message); // Replace with Sonner later
+      toast.error(result.message); // Replace with Sonner later
       return;
     }
+    toast.success(result.message);
 
     setFormData({
       username: "",
