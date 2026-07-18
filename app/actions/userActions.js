@@ -27,7 +27,7 @@ export async function createUser(formData) {
     requireRole(currentUser, ["SUPER_ADMIN"]);
 
     const validation = createUserSchema.safeParse({
-      username: formData.get("username"),
+      username: formData.get("username")?.trim().toLowerCase(),
       password: formData.get("password"),
       role: formData.get("role"),
     });
@@ -42,7 +42,7 @@ export async function createUser(formData) {
     const { username, password, role } = validation.data;
 
     // Check duplicate username
-    const existingUser = await User.findOne({ username });
+   const existingUser = await User.findOne({ username });
 
     if (existingUser) {
       return {
