@@ -158,6 +158,56 @@ export async function updateUser(formData) {
   }
 }
 
+//Delete User
+export async function deleteUser(id) {
+  try {
+    await connectDB();
+
+    const currentUser = await getCurrentUser();
+
+    requireRole(currentUser, ["SUPER_ADMIN"]);
+
+    if (!id) {
+      return {
+        success: false,
+        message: "User ID is required.",
+      };
+    }
+
+    if (currentUser.id === id) {
+      return {
+        success: false,
+        message: "You cannot delete your own account.",
+      };
+    }
+
+    const user = await User.findById(id);
+
+    if (!user) {
+      return {
+        success: false,
+        message: "User not found.",
+      };
+    }
+
+    await User.findByIdAndDelete(id);
+
+    revalidatePath("/admin/users");
+
+    return {
+      success: true,
+      message: "User deleted successfully.",
+    };
+  } catch (error) {
+    console.error(error);
+
+    return {
+      success: false,
+      message: error.message || "Failed to delete user.",
+    };
+  }
+}
+
 export async function getUsers() {
   try {
     await connectDB();

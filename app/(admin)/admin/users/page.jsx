@@ -65,10 +65,7 @@ export default function UsersPage() {
         {loading ? (
           <p>Loading users...</p>
         ) : (
-          <UserTable
-            users={users}
-            onEdit={handleEdit}
-          />
+          <UserTable users={users} onEdit={handleEdit} onSuccess={loadUsers} />
         )}
       </div>
     </div>

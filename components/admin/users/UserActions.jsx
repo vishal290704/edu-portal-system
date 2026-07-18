@@ -1,6 +1,10 @@
 "use client";
 
+import { useState } from "react";
+
 import { MoreHorizontal } from "lucide-react";
+
+import DeleteUserDialog from "./DeleteUserDialog";
 
 import { Button } from "@/components/ui/button";
 
@@ -12,36 +16,54 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-export default function UserActions({ user, onEdit }) {
+export default function UserActions({
+  user,
+  onEdit,
+  onSuccess,
+}) {
+  const [deleteOpen, setDeleteOpen] = useState(false);
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        render={
-          <Button variant="ghost" size="icon-sm">
-            <MoreHorizontal className="size-4" />
-          </Button>
-        }
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <Button variant="ghost" size="icon-sm">
+              <MoreHorizontal className="size-4" />
+            </Button>
+          }
+        />
+
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => onEdit(user)}>
+            Edit User
+          </DropdownMenuItem>
+
+          <DropdownMenuItem>
+            Reset Password
+          </DropdownMenuItem>
+
+          <DropdownMenuSeparator />
+
+          <DropdownMenuItem>
+            {user.isActive ? "Deactivate" : "Activate"}
+          </DropdownMenuItem>
+
+          <DropdownMenuItem
+            variant="destructive"
+            onClick={() => setDeleteOpen(true)}
+          >
+            Delete User
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <DeleteUserDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        user={user}
+        onSuccess={onSuccess}
       />
-
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => onEdit(user)}>
-          Edit User
-        </DropdownMenuItem>
-
-        <DropdownMenuItem>
-          Reset Password
-        </DropdownMenuItem>
-
-        <DropdownMenuSeparator />
-
-        <DropdownMenuItem>
-          {user.isActive ? "Deactivate" : "Activate"}
-        </DropdownMenuItem>
-
-        <DropdownMenuItem variant="destructive">
-          Delete User
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    </>
   );
 }

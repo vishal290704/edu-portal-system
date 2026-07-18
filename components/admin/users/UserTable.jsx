@@ -12,7 +12,7 @@ import UserActions from "./UserActions";
 
 import { Badge } from "@/components/ui/badge";
 
-export default function UserTable({ users, onEdit }) {
+export default function UserTable({ users, onEdit, onSuccess }) {
   return (
     <div className="rounded-lg border">
       <Table>
@@ -61,7 +61,11 @@ export default function UserTable({ users, onEdit }) {
                 </TableCell>
 
                 <TableCell className="text-right">
-                  <UserActions user={user} onEdit={onEdit} />
+                  <UserActions
+                    user={user}
+                    onEdit={onEdit}
+                    onSuccess={onSuccess}
+                  />
                 </TableCell>
               </TableRow>
             ))
