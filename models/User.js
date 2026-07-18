@@ -16,13 +16,18 @@ const UserSchema = new mongoose.Schema(
 
     role: {
       type: String,
-      enum: ["SUPER_ADMIN", "ADMIN", "STUDENT"],
+      enum: ["SUPER_ADMIN", "ADMIN", "TEACHER", "STUDENT"],
       required: true,
     },
 
     studentId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Student",
+      default: null,
+    },
+    teacherId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Teacher",
       default: null,
     },
 
@@ -35,6 +40,11 @@ const UserSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
 
     lastLogin: {
       type: Date,
@@ -43,7 +53,7 @@ const UserSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 export default mongoose.models.User || mongoose.model("User", UserSchema);
