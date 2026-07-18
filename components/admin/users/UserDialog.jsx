@@ -12,20 +12,44 @@ import {
 import { Button } from "@/components/ui/button";
 import UserForm from "./UserForm";
 
-export default function UserDialog({ open, onOpenChange, onSuccess }) {
+export default function UserDialog({
+  open,
+  onOpenChange,
+  onSuccess,
+  onCreate,
+  mode,
+  user,
+}) {
+  const isEdit = mode === "edit";
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogTrigger render={<Button />}>Create User</DialogTrigger>
+      <DialogTrigger
+        render={<Button />}
+        onClick={onCreate}
+      >
+        Create User
+      </DialogTrigger>
 
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>Create User</DialogTitle>
+          <DialogTitle>
+            {isEdit ? "Edit User" : "Create User"}
+          </DialogTitle>
+
           <DialogDescription>
-            Create a new administrator or teacher account.
+            {isEdit
+              ? "Update the selected user's information."
+              : "Create a new administrator or teacher account."}
           </DialogDescription>
         </DialogHeader>
 
-        <UserForm onSuccess={onSuccess} onClose={() => onOpenChange(false)} />
+        <UserForm
+          mode={mode}
+          user={user}
+          onSuccess={onSuccess}
+          onClose={() => onOpenChange(false)}
+        />
       </DialogContent>
     </Dialog>
   );

@@ -1,8 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-import { createUser } from "@/app/actions/userActions";
+import {
+  createUser,
+  updateUser,
+} from "@/app/actions/userActions";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,24 +17,93 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export default function UserForm() {
-  const [loading, setLoading] = useState(false);
-  const [role, setRole] = useState("");
+export default function UserForm({
+  mode,
+  user,
+  onSuccess,
+  onClose,
+}) {
+  const isEdit = mode === "edit";
 
-  async function handleSubmit(formData) {
-    formData.set("role", role);
+  const [loading, setLoading] = useState(false);
+
+  const [formData, setFormData] = useState({
+    username: "",
+    password: "",
+    role: "",
+  });
+
+  useEffect(() => {
+    if (isEdit && user) {
+      setFormData({
+        username: user.username,
+        password: "",
+        role: user.role,
+      });
+    } else {
+      setFormData({
+        username: "",
+        password: "",
+        role: "",
+      });
+    }
+  }, [isEdit, user]);
+
+  const handleChange = (e) => {
+    setFormData((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
+  };
+
+  const handleRoleChange = (value) => {
+    setFormData((prev) => ({
+      ...prev,
+      role: value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
     setLoading(true);
 
-    const result = await createUser(formData);
+    const data = new FormData();
 
-    console.log(result);
+    if (isEdit) {
+      data.append("id", user._id);
+    }
+
+    data.append("username", formData.username);
+    data.append("role", formData.role);
+
+    if (!isEdit) {
+      data.append("password", formData.password);
+    }
+
+    const result = isEdit
+      ? await updateUser(data)
+      : await createUser(data);
 
     setLoading(false);
-  }
+
+    if (!result.success) {
+      alert(result.message); // Replace with Sonner later
+      return;
+    }
+
+    setFormData({
+      username: "",
+      password: "",
+      role: "",
+    });
+
+    onSuccess?.();
+    onClose?.();
+  };
 
   return (
-    <form action={handleSubmit} className="space-y-5">
+    <form onSubmit={handleSubmit} className="space-y-5">
       <div className="space-y-2">
         <label className="text-sm font-medium">
           Username
@@ -39,24 +111,28 @@ export default function UserForm() {
 
         <Input
           name="username"
+          value={formData.username}
+          onChange={handleChange}
           placeholder="Enter username"
           autoComplete="off"
-          required
         />
       </div>
 
-      <div className="space-y-2">
-        <label className="text-sm font-medium">
-          Password
-        </label>
+      {!isEdit && (
+        <div className="space-y-2">
+          <label className="text-sm font-medium">
+            Temporary Password
+          </label>
 
-        <Input
-          name="password"
-          type="password"
-          placeholder="Enter temporary password"
-          required
-        />
-      </div>
+          <Input
+            type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            placeholder="Enter temporary password"
+          />
+        </div>
+      )}
 
       <div className="space-y-2">
         <label className="text-sm font-medium">
@@ -64,10 +140,10 @@ export default function UserForm() {
         </label>
 
         <Select
-          value={role}
-          onValueChange={setRole}
+          value={formData.role}
+          onValueChange={handleRoleChange}
         >
-          <SelectTrigger>
+          <SelectTrigger className="w-full">
             <SelectValue placeholder="Select role" />
           </SelectTrigger>
 
@@ -88,7 +164,13 @@ export default function UserForm() {
         className="w-full"
         disabled={loading}
       >
-        {loading ? "Creating..." : "Create User"}
+        {loading
+          ? isEdit
+            ? "Updating..."
+            : "Creating..."
+          : isEdit
+            ? "Update User"
+            : "Create User"}
       </Button>
     </form>
   );

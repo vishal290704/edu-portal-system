@@ -8,10 +8,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import UserActions from "./UserActions";
 
 import { Badge } from "@/components/ui/badge";
 
-export default function UserTable({ users }) {
+export default function UserTable({ users, onEdit }) {
   return (
     <div className="rounded-lg border">
       <Table>
@@ -22,6 +23,7 @@ export default function UserTable({ users }) {
             <TableHead>Status</TableHead>
             <TableHead>Must Change Password</TableHead>
             <TableHead>Last Login</TableHead>
+            <TableHead className="w-[80px] text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
 
@@ -29,7 +31,7 @@ export default function UserTable({ users }) {
           {users.length === 0 ? (
             <TableRow>
               <TableCell
-                colSpan={5}
+                colSpan={6}
                 className="h-32 text-center text-muted-foreground"
               >
                 No users found.
@@ -38,32 +40,28 @@ export default function UserTable({ users }) {
           ) : (
             users.map((user) => (
               <TableRow key={user._id}>
-                <TableCell className="font-medium">
-                  {user.username}
+                <TableCell className="font-medium">{user.username}</TableCell>
+
+                <TableCell>
+                  <Badge variant="secondary">{user.role}</Badge>
                 </TableCell>
 
                 <TableCell>
-                  <Badge variant="secondary">
-                    {user.role}
-                  </Badge>
-                </TableCell>
-
-                <TableCell>
-                  <Badge
-                    variant={user.isActive ? "default" : "destructive"}
-                  >
+                  <Badge variant={user.isActive ? "default" : "destructive"}>
                     {user.isActive ? "Active" : "Inactive"}
                   </Badge>
                 </TableCell>
 
-                <TableCell>
-                  {user.mustChangePassword ? "Yes" : "No"}
-                </TableCell>
+                <TableCell>{user.mustChangePassword ? "Yes" : "No"}</TableCell>
 
                 <TableCell>
                   {user.lastLogin
                     ? new Date(user.lastLogin).toLocaleString()
                     : "Never"}
+                </TableCell>
+
+                <TableCell className="text-right">
+                  <UserActions user={user} onEdit={onEdit} />
                 </TableCell>
               </TableRow>
             ))

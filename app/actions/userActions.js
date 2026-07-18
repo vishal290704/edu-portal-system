@@ -7,7 +7,7 @@ import connectDB from "@/lib/mongodb";
 import User from "@/models/User";
 import { getCurrentUser } from "@/lib/auth";
 import { requireRole } from "@/lib/authorize";
-import { createUserSchema } from "@/lib/validations/user";
+import { createUserSchema, updateUserSchema } from "@/lib/validations/user";
 
 export async function createUser(formData) {
   try {
@@ -42,7 +42,7 @@ export async function createUser(formData) {
     const { username, password, role } = validation.data;
 
     // Check duplicate username
-   const existingUser = await User.findOne({ username });
+    const existingUser = await User.findOne({ username });
 
     if (existingUser) {
       return {
@@ -81,6 +81,82 @@ export async function createUser(formData) {
   }
 }
 
+//Update User
+export async function updateUser(formData) {
+  try {
+    await connectDB();
+
+    const currentUser = await getCurrentUser();
+
+    if (!currentUser) {
+      return {
+        success: false,
+        message: "Unauthorized.",
+      };
+    }
+
+    // Only SUPER_ADMIN can update users
+    requireRole(currentUser, ["SUPER_ADMIN"]);
+
+    const validation = updateUserSchema.safeParse({
+      id: formData.get("id"),
+      username: formData.get("username")?.trim().toLowerCase(),
+      role: formData.get("role"),
+    });
+
+    if (!validation.success) {
+      return {
+        success: false,
+        message: validation.error.issues[0].message,
+      };
+    }
+
+    const { id, username, role } = validation.data;
+
+    // Check if user exists
+    const user = await User.findById(id);
+
+    if (!user) {
+      return {
+        success: false,
+        message: "User not found.",
+      };
+    }
+
+    // Prevent duplicate usernames
+    const existingUser = await User.findOne({
+      username,
+      _id: { $ne: id },
+    });
+
+    if (existingUser) {
+      return {
+        success: false,
+        message: "Username already exists.",
+      };
+    }
+
+    user.username = username;
+    user.role = role;
+
+    await user.save();
+
+    revalidatePath("/admin/users");
+
+    return {
+      success: true,
+      message: "User updated successfully.",
+      data: JSON.parse(JSON.stringify(user)),
+    };
+  } catch (error) {
+    console.error("Update User Error:", error);
+
+    return {
+      success: false,
+      message: error.message || "Something went wrong.",
+    };
+  }
+}
 
 export async function getUsers() {
   try {
@@ -105,7 +181,7 @@ export async function getUsers() {
 
     return {
       success: true,
-      data: users,
+       data: JSON.parse(JSON.stringify(users)),
     };
   } catch (error) {
     console.error("Get Users Error:", error);
