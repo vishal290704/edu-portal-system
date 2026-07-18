@@ -5,6 +5,7 @@ import { useState } from "react";
 import { MoreHorizontal } from "lucide-react";
 
 import DeleteUserDialog from "./DeleteUserDialog";
+import UserStatusDialog from "./UserStatusDialog";
 
 import { Button } from "@/components/ui/button";
 
@@ -22,6 +23,7 @@ export default function UserActions({
   onSuccess,
 }) {
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [statusOpen, setStatusOpen] = useState(false);
 
   return (
     <>
@@ -45,7 +47,9 @@ export default function UserActions({
 
           <DropdownMenuSeparator />
 
-          <DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => setStatusOpen(true)}
+          >
             {user.isActive ? "Deactivate" : "Activate"}
           </DropdownMenuItem>
 
@@ -61,6 +65,13 @@ export default function UserActions({
       <DeleteUserDialog
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
+        user={user}
+        onSuccess={onSuccess}
+      />
+
+      <UserStatusDialog
+        open={statusOpen}
+        onOpenChange={setStatusOpen}
         user={user}
         onSuccess={onSuccess}
       />

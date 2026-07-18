@@ -242,3 +242,58 @@ export async function getUsers() {
     };
   }
 }
+
+
+export async function toggleUserStatus(id) {
+  try {
+    await connectDB();
+
+    const currentUser = await getCurrentUser();
+
+    requireRole(currentUser, ["SUPER_ADMIN"]);
+
+    if (!id) {
+      return {
+        success: false,
+        message: "User ID is required.",
+      };
+    }
+
+    if (currentUser.id === id) {
+      return {
+        success: false,
+        message: "You cannot deactivate your own account.",
+      };
+    }
+
+    const user = await User.findById(id);
+
+    if (!user) {
+      return {
+        success: false,
+        message: "User not found.",
+      };
+    }
+
+    user.isActive = !user.isActive;
+
+    await user.save();
+
+    revalidatePath("/admin/users");
+
+    return {
+      success: true,
+      message: `User ${
+        user.isActive ? "activated" : "deactivated"
+      } successfully.`,
+    };
+  } catch (error) {
+    console.error(error);
+
+    return {
+      success: false,
+      message:
+        error.message || "Failed to update user status.",
+    };
+  }
+}
