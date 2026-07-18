@@ -80,3 +80,39 @@ export async function createUser(formData) {
     };
   }
 }
+
+
+export async function getUsers() {
+  try {
+    await connectDB();
+
+    const currentUser = await getCurrentUser();
+
+    if (!currentUser) {
+      return {
+        success: false,
+        message: "Unauthorized.",
+      };
+    }
+
+    // Only SUPER_ADMIN can view users
+    requireRole(currentUser, ["SUPER_ADMIN"]);
+
+    const users = await User.find({})
+      .select("-password")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return {
+      success: true,
+      data: users,
+    };
+  } catch (error) {
+    console.error("Get Users Error:", error);
+
+    return {
+      success: false,
+      message: error.message || "Something went wrong.",
+    };
+  }
+}
