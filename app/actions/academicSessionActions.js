@@ -57,6 +57,7 @@ export async function createAcademicSession(data) {
   }
 }
 
+//GetAcademicSession
 export async function getAcademicSessions() {
   try {
     await connectDB();
@@ -126,6 +127,7 @@ export async function updateAcademicSession(id, data) {
   }
 }
 
+//Delete AcademicSession
 export async function deleteAcademicSession(id) {
   try {
     await connectDB();
