@@ -42,6 +42,11 @@ const menuItems = [
     icon: BookOpen,
   },
   {
+    title: "Exams",
+    href: "/admin/exams",
+    icon: ClipboardList,
+  },
+  {
     title: "Results",
     href: "/admin/results",
     icon: FileText,

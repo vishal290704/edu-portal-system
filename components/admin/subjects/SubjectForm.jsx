@@ -10,20 +10,7 @@ import {
   createSubject,
   updateSubject,
 } from "@/app/actions/subjectActions";
-
-const classes = [
-  "Nursery",
-  "LKG",
-  "UKG",
-  "1",
-  "2",
-  "3",
-  "4",
-  "5",
-  "6",
-  "7",
-  "8",
-];
+import { CLASS_OPTIONS } from "@/constants/classes";
 
 export default function SubjectForm({
   initialData = {},
@@ -131,7 +118,7 @@ export default function SubjectForm({
         <Label>Applicable Classes</Label>
 
         <div className="grid grid-cols-3 gap-3">
-          {classes.map((cls) => (
+          {CLASS_OPTIONS.map((cls) => (
             <label
               key={cls}
               className="flex items-center gap-2 text-sm"

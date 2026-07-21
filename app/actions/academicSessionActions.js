@@ -199,3 +199,22 @@ export async function setActiveAcademicSession(id) {
     };
   }
 }
+
+// ============================
+// Get Active Academic Session
+// ============================
+
+export async function getActiveAcademicSession() {
+  try {
+    await connectDB();
+
+    const session = await AcademicSession.findOne({
+      isActive: true,
+    });
+
+    return JSON.parse(JSON.stringify(session));
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}
