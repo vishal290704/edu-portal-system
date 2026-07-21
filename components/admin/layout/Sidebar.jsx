@@ -11,6 +11,7 @@ import {
   Settings,
   LogOut,
   GraduationCap,
+  Calendar,
 } from "lucide-react";
 
 const menuItems = [
@@ -28,6 +29,11 @@ const menuItems = [
     title: "Students",
     href: "/admin/students",
     icon: Users,
+  },
+  {
+    title: "Academic Sessions",
+    href: "/admin/academic-session",
+    icon: Calendar,
   },
   {
     title: "Results",

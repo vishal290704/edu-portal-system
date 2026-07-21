@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   ClipboardCheck,
@@ -12,6 +11,7 @@ import {
   LogOut,
   GraduationCap,
 } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
 
 const menuItems = [
   {
@@ -46,11 +46,32 @@ const menuItems = [
   },
 ];
 
+
+
 export default function TeacherSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+
+async function handleLogout() {
+  try {
+    const res = await fetch("/api/auth/logout", {
+      method: "POST",
+    });
+
+    if (res.ok) {
+      router.replace("/login");
+      router.refresh();
+    } else {
+      alert("Logout failed.");
+    }
+  } catch (error) {
+    console.error(error);
+    alert("Something went wrong.");
+  }
+}
 
   return (
-    <aside className="hidden md:flex w-64 flex-col border-r bg-white">
+    <aside className="hidden md:flex h-screen w-64 flex-col border-r bg-white">
       {/* Logo */}
       <div className="flex items-center gap-3 border-b px-6 py-5">
         <div className="rounded-xl bg-primary p-2 text-white">
@@ -58,13 +79,9 @@ export default function TeacherSidebar() {
         </div>
 
         <div>
-          <h2 className="font-semibold leading-none">
-            Dynamic English
-          </h2>
+          <h2 className="font-semibold leading-none">Dynamic English School</h2>
 
-          <p className="text-xs text-muted-foreground">
-            Teacher Portal
-          </p>
+          <p className="text-xs text-muted-foreground">Teacher Portal</p>
         </div>
       </div>
 
@@ -74,8 +91,7 @@ export default function TeacherSidebar() {
           const Icon = item.icon;
 
           const active =
-            pathname === item.href ||
-            pathname.startsWith(item.href + "/");
+            pathname === item.href || pathname.startsWith(item.href + "/");
 
           return (
             <Link
@@ -96,7 +112,10 @@ export default function TeacherSidebar() {
 
       {/* Logout */}
       <div className="border-t p-4">
-        <button className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-red-600 transition hover:bg-red-50">
+        <button
+          onClick={handleLogout}
+          className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-red-600 transition hover:bg-red-50"
+        >
           <LogOut size={18} />
           Logout
         </button>
