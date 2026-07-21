@@ -12,6 +12,7 @@ import {
   LogOut,
   GraduationCap,
   Calendar,
+  BookOpen,
 } from "lucide-react";
 
 const menuItems = [
@@ -34,6 +35,11 @@ const menuItems = [
     title: "Academic Sessions",
     href: "/admin/academic-session",
     icon: Calendar,
+  },
+  {
+    title: "Subjects",
+    href: "/admin/subjects",
+    icon: BookOpen,
   },
   {
     title: "Results",
