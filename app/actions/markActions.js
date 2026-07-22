@@ -218,3 +218,83 @@ export async function deleteMark(id) {
     };
   }
 }
+
+// ============================
+// Save Bulk Marks
+// ============================
+
+export async function saveBulkMarks(data) {
+  try {
+    await connectDB();
+
+    const {
+      academicSession,
+      exam,
+      subject,
+      maximumMarks,
+      marks,
+    } = data;
+
+    if (!exam || !subject || !academicSession) {
+      return {
+        success: false,
+        message: "Please select exam and subject.",
+      };
+    }
+
+    for (const item of marks) {
+      if (
+        item.obtainedMarks === "" ||
+        item.obtainedMarks === null ||
+        item.obtainedMarks === undefined
+      ) {
+        continue;
+      }
+
+      const obtained = Number(item.obtainedMarks);
+      const maximum = Number(maximumMarks);
+
+      if (obtained > maximum) {
+        return {
+          success: false,
+          message: `${item.studentName}: Marks cannot exceed maximum marks.`,
+        };
+      }
+
+      await Mark.findOneAndUpdate(
+        {
+          academicSession,
+          exam,
+          subject,
+          student: item.student,
+        },
+        {
+          academicSession,
+          exam,
+          subject,
+          student: item.student,
+          obtainedMarks: obtained,
+          maximumMarks: maximum,
+        },
+        {
+          upsert: true,
+          new: true,
+        }
+      );
+    }
+
+    revalidatePath("/admin/marks");
+
+    return {
+      success: true,
+      message: "Marks saved successfully.",
+    };
+  } catch (error) {
+    console.error(error);
+
+    return {
+      success: false,
+      message: "Something went wrong.",
+    };
+  }
+}
