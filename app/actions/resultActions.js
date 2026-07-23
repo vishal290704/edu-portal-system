@@ -4,6 +4,12 @@ import connectDB from "@/lib/mongodb";
 
 import Mark from "@/models/Mark";
 
+import {
+  calculatePercentage,
+  calculateGrade,
+  calculatePassFail,
+} from "@/lib/resultUtils";
+
 export async function getStudentResult({
   academicSession,
   exam,
@@ -45,15 +51,17 @@ export async function getStudentResult({
       };
     });
 
-    const percentage =
-      totalMaximum === 0
-        ? 0
-        : Number(
-            (
-              (totalObtained / totalMaximum) *
-              100
-            ).toFixed(2)
-          );
+    const percentage = calculatePercentage(
+      totalObtained,
+      totalMaximum
+    );
+
+    const grade = calculateGrade(percentage);
+
+    const result = calculatePassFail(
+      totalObtained,
+      totalMaximum
+    );
 
     return {
       success: true,
@@ -62,6 +70,8 @@ export async function getStudentResult({
       totalObtained,
       totalMaximum,
       percentage,
+      grade,
+      result,
     };
   } catch (error) {
     console.error(error);
