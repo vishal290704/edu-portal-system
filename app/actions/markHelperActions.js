@@ -19,7 +19,7 @@ export async function getActiveSession() {
       isActive: true,
     }).lean();
 
-    return session;
+    return JSON.parse(JSON.stringify(session));
   } catch (error) {
     console.error("getActiveSession:", error);
     return null;
@@ -47,7 +47,7 @@ export async function getActiveSessionExams() {
       .sort({ examName: 1 })
       .lean();
 
-    return exams;
+    return JSON.parse(JSON.stringify(exams));
   } catch (error) {
     console.error("getActiveSessionExams:", error);
     return [];
@@ -74,7 +74,7 @@ export async function getStudentsByClass(className) {
       )
       .lean();
 
-    return students;
+    return JSON.parse(JSON.stringify(students));
   } catch (error) {
     console.error("getStudentsByClass:", error);
     return [];
@@ -98,7 +98,7 @@ export async function getSubjectsByClass(className) {
       })
       .lean();
 
-    return subjects;
+    return JSON.parse(JSON.stringify(subjects));
   } catch (error) {
     console.error("getSubjectsByClass:", error);
     return [];
@@ -119,7 +119,7 @@ export async function getStudentById(studentId) {
       )
       .lean();
 
-    return student;
+    return JSON.parse(JSON.stringify(student));
   } catch (error) {
     console.error("getStudentById:", error);
     return null;

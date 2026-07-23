@@ -75,11 +75,12 @@ export async function createMark(data) {
       };
     }
 
-    const existing = await Mark.findOne({
-      exam,
-      student,
-      subject,
-    });
+  const existing = await Mark.findOne({
+  academicSession,
+  exam,
+  student,
+  subject,
+});
 
     if (existing) {
       return {
@@ -87,18 +88,21 @@ export async function createMark(data) {
         message: "Marks already exist for this student and subject.",
       };
     }
-
     const mark = await Mark.create({
       academicSession,
       exam,
       student,
+
+      // Historical snapshot
+      className: studentDoc.className,
+      section: studentDoc.section,
+
       subject,
       obtainedMarks,
       maximumMarks,
       remarks,
       enteredBy,
     });
-
     revalidatePath("/admin/marks");
 
     return {
@@ -240,12 +244,33 @@ export async function saveStudentMarks({
       };
     }
 
+    // Get student's current class and section
+    const studentDoc = await Student.findById(student).select(
+      "className section rollNo admissionNo",
+    );
+
+    if (!studentDoc) {
+      return {
+        success: false,
+        message: "Student not found.",
+      };
+    }
+
     for (const mark of marks) {
       if (!mark.subject) {
         return {
           success: false,
           message: "Invalid subject.",
         };
+      }
+
+      // Skip empty marks
+      if (
+        mark.obtainedMarks === "" ||
+        mark.obtainedMarks === null ||
+        mark.obtainedMarks === undefined
+      ) {
+        continue;
       }
 
       const obtainedMarks = Number(mark.obtainedMarks);
@@ -275,7 +300,7 @@ export async function saveStudentMarks({
       if (obtainedMarks > maximumMarks) {
         return {
           success: false,
-          message: "Obtained marks cannot exceed maximum marks.",
+          message: `Obtained marks cannot exceed ${maximumMarks}.`,
         };
       }
 
@@ -290,6 +315,11 @@ export async function saveStudentMarks({
           academicSession,
           exam,
           student,
+
+          // Snapshot for historical records
+          className: studentDoc.className,
+          section: studentDoc.section,
+
           subject: mark.subject,
           obtainedMarks,
           maximumMarks,
@@ -299,10 +329,13 @@ export async function saveStudentMarks({
           upsert: true,
           new: true,
           runValidators: true,
+          setDefaultsOnInsert: true,
         },
       );
     }
+
     revalidatePath("/admin/marks");
+
     return {
       success: true,
       message: "Marks saved successfully.",

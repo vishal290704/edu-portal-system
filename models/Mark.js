@@ -20,6 +20,20 @@ const markSchema = new mongoose.Schema(
       required: true,
     },
 
+    // Snapshot of student's class at the time of examination
+    className: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    // Snapshot of student's section at the time of examination
+    section: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
     subject: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Subject",
@@ -47,6 +61,7 @@ const markSchema = new mongoose.Schema(
     enteredBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+      default: null,
     },
   },
   {
@@ -54,11 +69,12 @@ const markSchema = new mongoose.Schema(
   }
 );
 
-// Prevent duplicate marks for the same student, exam and subject
+// Prevent duplicate marks for the same student, academic session, exam and subject
 markSchema.index(
   {
-    student: 1,
+    academicSession: 1,
     exam: 1,
+    student: 1,
     subject: 1,
   },
   {
