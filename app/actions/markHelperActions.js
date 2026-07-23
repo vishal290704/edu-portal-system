@@ -17,11 +17,11 @@ export async function getActiveSession() {
 
     const session = await AcademicSession.findOne({
       isActive: true,
-    });
+    }).lean();
 
-    return JSON.parse(JSON.stringify(session));
+    return session;
   } catch (error) {
-    console.error(error);
+    console.error("getActiveSession:", error);
     return null;
   }
 }
@@ -36,18 +36,20 @@ export async function getActiveSessionExams() {
 
     const session = await AcademicSession.findOne({
       isActive: true,
-    });
+    }).lean();
 
     if (!session) return [];
 
     const exams = await Exam.find({
       academicSession: session._id,
       status: true,
-    }).sort({ examName: 1 });
+    })
+      .sort({ examName: 1 })
+      .lean();
 
-    return JSON.parse(JSON.stringify(exams));
+    return exams;
   } catch (error) {
-    console.error(error);
+    console.error("getActiveSessionExams:", error);
     return [];
   }
 }
@@ -69,11 +71,12 @@ export async function getStudentsByClass(className) {
       })
       .select(
         "firstName lastName rollNo admissionNo className"
-      );
+      )
+      .lean();
 
-    return JSON.parse(JSON.stringify(students));
+    return students;
   } catch (error) {
-    console.error(error);
+    console.error("getStudentsByClass:", error);
     return [];
   }
 }
@@ -89,13 +92,36 @@ export async function getSubjectsByClass(className) {
     const subjects = await Subject.find({
       applicableClasses: className,
       status: true,
-    }).sort({
-      subjectName: 1,
-    });
+    })
+      .sort({
+        subjectName: 1,
+      })
+      .lean();
 
-    return JSON.parse(JSON.stringify(subjects));
+    return subjects;
   } catch (error) {
-    console.error(error);
+    console.error("getSubjectsByClass:", error);
     return [];
+  }
+}
+
+// ===================================
+// Student By ID
+// ===================================
+
+export async function getStudentById(studentId) {
+  try {
+    await connectDB();
+
+    const student = await Student.findById(studentId)
+      .select(
+        "admissionNo rollNo firstName lastName fatherName className section"
+      )
+      .lean();
+
+    return student;
+  } catch (error) {
+    console.error("getStudentById:", error);
+    return null;
   }
 }

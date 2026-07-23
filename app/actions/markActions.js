@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 
 import connectDB from "@/lib/mongodb";
-
 import Mark from "@/models/Mark";
 import Student from "@/models/Student";
 import Subject from "@/models/Subject";
@@ -31,8 +30,7 @@ export async function createMark(data) {
     if (Number(obtainedMarks) > Number(maximumMarks)) {
       return {
         success: false,
-        message:
-          "Obtained marks cannot exceed maximum marks.",
+        message: "Obtained marks cannot exceed maximum marks.",
       };
     }
 
@@ -63,27 +61,17 @@ export async function createMark(data) {
       };
     }
 
-    if (
-      !examDoc.applicableClasses.includes(
-        studentDoc.className
-      )
-    ) {
+    if (!examDoc.applicableClasses.includes(studentDoc.className)) {
       return {
         success: false,
-        message:
-          "Student's class is not applicable for this exam.",
+        message: "Student's class is not applicable for this exam.",
       };
     }
 
-    if (
-      !subjectDoc.applicableClasses.includes(
-        studentDoc.className
-      )
-    ) {
+    if (!subjectDoc.applicableClasses.includes(studentDoc.className)) {
       return {
         success: false,
-        message:
-          "Subject is not applicable for this student's class.",
+        message: "Subject is not applicable for this student's class.",
       };
     }
 
@@ -96,8 +84,7 @@ export async function createMark(data) {
     if (existing) {
       return {
         success: false,
-        message:
-          "Marks already exist for this student and subject.",
+        message: "Marks already exist for this student and subject.",
       };
     }
 
@@ -129,7 +116,6 @@ export async function createMark(data) {
   }
 }
 
-
 // ============================
 // Get Marks
 // ============================
@@ -152,7 +138,6 @@ export async function getMarks() {
   }
 }
 
-
 // ============================
 // Update Mark
 // ============================
@@ -161,14 +146,10 @@ export async function updateMark(id, data) {
   try {
     await connectDB();
 
-    if (
-      Number(data.obtainedMarks) >
-      Number(data.maximumMarks)
-    ) {
+    if (Number(data.obtainedMarks) > Number(data.maximumMarks)) {
       return {
         success: false,
-        message:
-          "Obtained marks cannot exceed maximum marks.",
+        message: "Obtained marks cannot exceed maximum marks.",
       };
     }
 
@@ -191,7 +172,6 @@ export async function updateMark(id, data) {
     };
   }
 }
-
 
 // ============================
 // Delete Mark
@@ -219,45 +199,83 @@ export async function deleteMark(id) {
   }
 }
 
-// ============================
-// Save Bulk Marks
-// ============================
-
-export async function saveBulkMarks(data) {
+export async function getStudentMarks({ academicSession, exam, student }) {
   try {
     await connectDB();
 
-    const {
+    const marks = await Mark.find({
       academicSession,
       exam,
-      subject,
-      maximumMarks,
-      marks,
-    } = data;
+      student,
+    }).populate("subject", "_id subjectName subjectCode");
 
-    if (!exam || !subject || !academicSession) {
+    return JSON.parse(JSON.stringify(marks));
+  } catch (error) {
+    console.error(error);
+
+    return [];
+  }
+}
+
+export async function saveStudentMarks({
+  academicSession,
+  exam,
+  student,
+  marks,
+}) {
+  try {
+    await connectDB();
+
+    if (!academicSession || !exam || !student) {
       return {
         success: false,
-        message: "Please select exam and subject.",
+        message: "Please select session, exam and student.",
       };
     }
 
-    for (const item of marks) {
-      if (
-        item.obtainedMarks === "" ||
-        item.obtainedMarks === null ||
-        item.obtainedMarks === undefined
-      ) {
-        continue;
-      }
+    if (!marks || marks.length === 0) {
+      return {
+        success: false,
+        message: "No marks to save.",
+      };
+    }
 
-      const obtained = Number(item.obtainedMarks);
-      const maximum = Number(maximumMarks);
-
-      if (obtained > maximum) {
+    for (const mark of marks) {
+      if (!mark.subject) {
         return {
           success: false,
-          message: `${item.studentName}: Marks cannot exceed maximum marks.`,
+          message: "Invalid subject.",
+        };
+      }
+
+      const obtainedMarks = Number(mark.obtainedMarks);
+      const maximumMarks = Number(mark.maximumMarks);
+
+      if (isNaN(obtainedMarks) || isNaN(maximumMarks)) {
+        return {
+          success: false,
+          message: "Marks must be numeric.",
+        };
+      }
+
+      if (obtainedMarks < 0) {
+        return {
+          success: false,
+          message: "Obtained marks cannot be negative.",
+        };
+      }
+
+      if (maximumMarks <= 0) {
+        return {
+          success: false,
+          message: "Maximum marks must be greater than zero.",
+        };
+      }
+
+      if (obtainedMarks > maximumMarks) {
+        return {
+          success: false,
+          message: "Obtained marks cannot exceed maximum marks.",
         };
       }
 
@@ -265,36 +283,36 @@ export async function saveBulkMarks(data) {
         {
           academicSession,
           exam,
-          subject,
-          student: item.student,
+          student,
+          subject: mark.subject,
         },
         {
           academicSession,
           exam,
-          subject,
-          student: item.student,
-          obtainedMarks: obtained,
-          maximumMarks: maximum,
+          student,
+          subject: mark.subject,
+          obtainedMarks,
+          maximumMarks,
+          remarks: mark.remarks?.trim() || "",
         },
         {
           upsert: true,
           new: true,
-        }
+          runValidators: true,
+        },
       );
     }
-
     revalidatePath("/admin/marks");
-
     return {
       success: true,
       message: "Marks saved successfully.",
     };
   } catch (error) {
-    console.error(error);
+    console.error("Save Student Marks Error:", error);
 
     return {
       success: false,
-      message: "Something went wrong.",
+      message: "Failed to save marks.",
     };
   }
 }
