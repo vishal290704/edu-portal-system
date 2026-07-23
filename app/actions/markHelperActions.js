@@ -62,7 +62,7 @@ export async function getStudentsByClass(className) {
 
     const students = await Student.find({
       className,
-      status: true,
+      status: "Active",
     })
       .sort({
         rollNo: 1,
