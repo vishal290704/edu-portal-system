@@ -12,11 +12,9 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 border-b bg-white/90 backdrop-blur-xl">
       <Container className="flex h-24 items-center justify-between">
-
         {/* Logo */}
 
         <Link href="/" className="flex items-center gap-4">
-
           <Image
             src="/logos/school-logo.png"
             alt="School Logo"
@@ -26,27 +24,19 @@ export default function Navbar() {
           />
 
           <div>
-
             <h1 className="heading-font text-3xl font-extrabold text-[#0F4C81] leading-none">
-
               Dynamic English School
-
             </h1>
 
             <p className="mt-1 text-sm text-slate-500">
-
               Learn Today • Lead Tomorrow
-
             </p>
-
           </div>
-
         </Link>
 
         {/* Navigation */}
 
         <nav className="hidden lg:flex items-center gap-8">
-
           {navigation.map((item) => (
             <Link
               key={item.name}
@@ -56,31 +46,25 @@ export default function Navbar() {
               {item.name}
             </Link>
           ))}
-
         </nav>
 
         {/* Right Side */}
 
         <div className="hidden lg:flex items-center gap-3">
+          <Link href="/login">
+            <Button variant="outline">Login</Button>
+          </Link>
 
-          <Button variant="outline">
-            Login
-          </Button>
-
-          <Button className="bg-[#0F4C81] hover:bg-blue-700">
-            Apply Now
-          </Button>
-
+          <Link href="/admissions">
+            <Button className="bg-[#0F4C81] hover:bg-blue-700">
+              Apply Now
+            </Button>
+          </Link>
         </div>
 
-        <Button
-          variant="ghost"
-          size="icon"
-          className="lg:hidden"
-        >
+        <Button variant="ghost" size="icon" className="lg:hidden">
           <Menu />
         </Button>
-
       </Container>
     </header>
   );
