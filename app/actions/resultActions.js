@@ -3,75 +3,256 @@
 import connectDB from "@/lib/mongodb";
 
 import Mark from "@/models/Mark";
+import Student from "@/models/Student";
+import Exam from "@/models/Exam";
+import AcademicSession from "@/models/AcademicSession";
 
 import {
   calculatePercentage,
   calculateGrade,
   calculatePassFail,
+  calculateSubjectResult,
 } from "@/lib/resultUtils";
 
-export async function getStudentResult({ academicSession, exam, student }) {
+
+// ===================================
+// Get Student Result
+// ===================================
+
+export async function getStudentResult({
+  academicSession,
+  exam,
+  student,
+}) {
   try {
     await connectDB();
-    console.log("1. Connected");
+
+    // ===================================
+    // Validate Required Data
+    // ===================================
+
+    if (!academicSession || !exam || !student) {
+      return {
+        success: false,
+        message: "Session, exam and student are required.",
+      };
+    }
+
+
+    // ===================================
+    // Get Student
+    // ===================================
+
+    const studentDoc = await Student.findById(student)
+      .select(
+        "admissionNo rollNo firstName lastName fatherName motherName dob className section"
+      )
+      .lean();
+
+    if (!studentDoc) {
+      return {
+        success: false,
+        message: "Student not found.",
+      };
+    }
+
+
+    // ===================================
+    // Get Academic Session
+    // ===================================
+
+    const sessionDoc = await AcademicSession.findById(
+      academicSession
+    )
+      .select("name")
+      .lean();
+
+    if (!sessionDoc) {
+      return {
+        success: false,
+        message: "Academic session not found.",
+      };
+    }
+
+
+    // ===================================
+    // Get Exam
+    // ===================================
+
+    const examDoc = await Exam.findById(exam)
+      .select("examName")
+      .lean();
+
+    if (!examDoc) {
+      return {
+        success: false,
+        message: "Exam not found.",
+      };
+    }
+
+
+    // ===================================
+    // Get Student Marks
+    // ===================================
+
     const marks = await Mark.find({
       academicSession,
       exam,
       student,
-    }).populate("subject", "_id subjectName subjectCode");
-    console.log("2. Marks found:", marks.length);
+    })
+      .populate(
+        "subject",
+        "_id subjectName subjectCode"
+      )
+      .lean();
 
-    marks.sort((a, b) =>
-      a.subject.subjectName.localeCompare(b.subject.subjectName),
-    );
-    console.log("3. Sorting done");
 
     if (marks.length === 0) {
       return {
         success: false,
-        message: "No marks found.",
+        message: "No marks found for this student.",
       };
     }
+
+
+    // ===================================
+    // Calculate Subject Results
+    // ===================================
 
     let totalObtained = 0;
     let totalMaximum = 0;
 
     const subjects = marks.map((mark) => {
-      totalObtained += mark.obtainedMarks;
-      totalMaximum += mark.maximumMarks;
-console.log("4. Returning result");
+      const obtained = Number(mark.obtainedMarks);
+      const maximum = Number(mark.maximumMarks);
+
+      totalObtained += obtained;
+      totalMaximum += maximum;
+
+      const subjectResult =
+        calculateSubjectResult(
+          obtained,
+          maximum
+        );
+
       return {
-        id: mark.subject._id.toString(),
-        subject: mark.subject.subjectName,
-        code: mark.subject.subjectCode,
-        obtained: mark.obtainedMarks,
-        maximum: mark.maximumMarks,
-        remarks: mark.remarks,
+        id: mark.subject?._id?.toString() || "",
+        subject: mark.subject?.subjectName || "",
+        code: mark.subject?.subjectCode || "",
+
+        obtained,
+        maximum,
+
+        percentage: subjectResult.percentage,
+        grade: subjectResult.grade,
+
+        remarks: mark.remarks || "",
       };
     });
 
-    const percentage = calculatePercentage(totalObtained, totalMaximum);
+
+    // ===================================
+    // Overall Result
+    // ===================================
+
+    const percentage = calculatePercentage(
+      totalObtained,
+      totalMaximum
+    );
 
     const grade = calculateGrade(percentage);
 
-    const result = calculatePassFail(totalObtained, totalMaximum);
+    const result = calculatePassFail(
+      totalObtained,
+      totalMaximum
+    );
+
+
+    // ===================================
+    // Student Historical Class Snapshot
+    // ===================================
+
+    const className =
+      marks[0]?.className ||
+      studentDoc.className;
+
+    const section =
+      marks[0]?.section ||
+      studentDoc.section;
+
+
+    // ===================================
+    // Return Result
+    // ===================================
 
     return {
       success: true,
-      student,
+
+      student: {
+        id: studentDoc._id.toString(),
+
+        admissionNo:
+          studentDoc.admissionNo || "",
+
+        rollNo:
+          studentDoc.rollNo || "",
+
+        firstName:
+          studentDoc.firstName || "",
+
+        lastName:
+          studentDoc.lastName || "",
+
+        fullName:
+          `${studentDoc.firstName || ""} ${
+            studentDoc.lastName || ""
+          }`.trim(),
+
+        fatherName:
+          studentDoc.fatherName || "",
+
+        motherName:
+          studentDoc.motherName || "",
+
+        dob: studentDoc.dob
+          ? studentDoc.dob.toISOString()
+          : null,
+
+        className,
+        section,
+      },
+
+      academicSession: {
+        id: sessionDoc._id.toString(),
+        name: sessionDoc.name,
+      },
+
+      exam: {
+        id: examDoc._id.toString(),
+        name: examDoc.examName,
+      },
+
       subjects,
+
       totalObtained,
       totalMaximum,
+
       percentage,
       grade,
       result,
+
+      // Rank will be implemented next.
+      rank: null,
     };
   } catch (error) {
-    console.error(error);
+    console.error(
+      "Get Student Result Error:",
+      error
+    );
 
     return {
       success: false,
-      message: "Something went wrong.",
+      message: "Failed to generate student result.",
     };
   }
 }
