@@ -180,6 +180,65 @@ export async function getStudentResult({
       marks[0]?.section ||
       studentDoc.section;
 
+      // ===================================
+// Calculate Class Rank
+// ===================================
+
+const classMarks = await Mark.find({
+  academicSession,
+  exam,
+  className,
+  section,
+})
+  .select("student obtainedMarks maximumMarks")
+  .lean();
+
+const studentTotals = {};
+
+for (const mark of classMarks) {
+  const studentId = mark.student.toString();
+
+  if (!studentTotals[studentId]) {
+    studentTotals[studentId] = {
+      obtained: 0,
+      maximum: 0,
+    };
+  }
+
+  studentTotals[studentId].obtained +=
+    Number(mark.obtainedMarks);
+
+  studentTotals[studentId].maximum +=
+    Number(mark.maximumMarks);
+}
+
+const rankedStudents = Object.entries(
+  studentTotals
+)
+  .map(([studentId, totals]) => ({
+    studentId,
+
+    percentage: calculatePercentage(
+      totals.obtained,
+      totals.maximum
+    ),
+  }))
+  .sort(
+    (a, b) =>
+      b.percentage - a.percentage
+  );
+
+const studentRankIndex =
+  rankedStudents.findIndex(
+    (item) =>
+      item.studentId === student.toString()
+  );
+
+const rank =
+  studentRankIndex === -1
+    ? null
+    : studentRankIndex + 1;
+
 
     // ===================================
     // Return Result
@@ -240,9 +299,7 @@ export async function getStudentResult({
       percentage,
       grade,
       result,
-
-      // Rank will be implemented next.
-      rank: null,
+      rank,
     };
   } catch (error) {
     console.error(
