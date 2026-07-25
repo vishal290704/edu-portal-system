@@ -11,25 +11,7 @@ export default function PrintableReportCard({ result }) {
   const dense = subjectCount >= 11;
   const extraDense = subjectCount >= 14;
 
-  // ===================================
-  // Dynamic Sizing
-  // ===================================
-
-  const outerPadding = extraDense
-    ? "px-4 py-2"
-    : dense
-      ? "px-5 py-3"
-      : compact
-        ? "px-5 py-3"
-        : "px-6 py-4";
-
-  const logoSize = extraDense
-    ? 42
-    : dense
-      ? 48
-      : compact
-        ? 54
-        : 62;
+  const logoSize = extraDense ? 42 : dense ? 48 : compact ? 54 : 62;
 
   const schoolTitleSize = extraDense
     ? "text-[18px]"
@@ -66,18 +48,13 @@ export default function PrintableReportCard({ result }) {
   return (
     <div
       id="printable-report-card"
-      className="mx-auto w-full max-w-[794px] bg-white text-slate-900"
+      className="report-card-page mx-auto w-full bg-white text-slate-900"
+      style={{
+        "--subject-count": Math.max(subjectCount, 1),
+      }}
     >
-      {/* ================================= */}
-      {/* DOCUMENT BORDER */}
-      {/* ================================= */}
-
-      <div className="border-[3px] border-[#0F4C81] p-[3px]">
-
-        <div
-          className={`border border-[#0F4C81] ${outerPadding}`}
-        >
-
+      <div className="report-card-outer">
+        <div className="report-card-inner">
           {/* ================================= */}
           {/* SCHOOL HEADER */}
           {/* ================================= */}
@@ -93,9 +70,7 @@ export default function PrintableReportCard({ result }) {
                     : "grid-cols-[70px_1fr_70px] pb-3"
             }`}
           >
-
             <div className="flex justify-center">
-
               <Image
                 src="/logos/school-logo.png"
                 alt="School Logo"
@@ -104,12 +79,9 @@ export default function PrintableReportCard({ result }) {
                 className="object-contain"
                 priority
               />
-
             </div>
 
-
             <div className="text-center">
-
               <h1
                 className={`${schoolTitleSize} font-extrabold uppercase tracking-wide text-[#0F4C81]`}
               >
@@ -118,9 +90,7 @@ export default function PrintableReportCard({ result }) {
 
               <p
                 className={`font-medium ${
-                  dense
-                    ? "mt-0.5 text-[10px]"
-                    : "mt-1 text-xs"
+                  dense ? "mt-0.5 text-[10px]" : "mt-1 text-xs"
                 }`}
               >
                 Phulwariya, Varanasi, Uttar Pradesh
@@ -129,21 +99,16 @@ export default function PrintableReportCard({ result }) {
               {!extraDense && (
                 <p
                   className={`italic text-slate-500 ${
-                    dense
-                      ? "mt-0.5 text-[9px]"
-                      : "mt-1 text-[10px]"
+                    dense ? "mt-0.5 text-[9px]" : "mt-1 text-[10px]"
                   }`}
                 >
                   Learn Today • Lead Tomorrow
                 </p>
               )}
-
             </div>
 
             <div />
-
           </div>
-
 
           {/* ================================= */}
           {/* REPORT TITLE */}
@@ -151,21 +116,12 @@ export default function PrintableReportCard({ result }) {
 
           <div
             className={`text-center ${
-              extraDense
-                ? "py-1"
-                : dense
-                  ? "py-1.5"
-                  : compact
-                    ? "py-2"
-                    : "py-3"
+              extraDense ? "py-1" : dense ? "py-1.5" : compact ? "py-2" : "py-3"
             }`}
           >
-
             <h2
               className={`font-extrabold uppercase tracking-[0.18em] ${
-                dense
-                  ? "text-base"
-                  : "text-lg"
+                dense ? "text-base" : "text-lg"
               }`}
             >
               Report Card
@@ -180,14 +136,11 @@ export default function PrintableReportCard({ result }) {
                 dense ? "mt-1" : "mt-2"
               }`}
             >
-
               <p className="text-xs font-bold">
                 {result.exam?.name || "Examination"}
               </p>
 
-              <span className="text-slate-400">
-                •
-              </span>
+              <span className="text-slate-400">•</span>
 
               <p className="text-[10px] text-slate-600">
                 Academic Session:{" "}
@@ -195,41 +148,29 @@ export default function PrintableReportCard({ result }) {
                   {result.academicSession?.name || "-"}
                 </span>
               </p>
-
             </div>
-
           </div>
-
 
           {/* ================================= */}
           {/* STUDENT INFORMATION */}
           {/* ================================= */}
 
           <div className="border border-slate-400">
-
             <div
               className={`bg-[#0F4C81] text-white ${
-                dense
-                  ? "px-3 py-1"
-                  : "px-4 py-1.5"
+                dense ? "px-3 py-1" : "px-4 py-1.5"
               }`}
             >
-
               <h3
                 className={`font-bold uppercase tracking-wider ${
-                  dense
-                    ? "text-[9px]"
-                    : "text-[10px]"
+                  dense ? "text-[9px]" : "text-[10px]"
                 }`}
               >
                 Student Information
               </h3>
-
             </div>
 
-
             <div className="grid grid-cols-2">
-
               <Info
                 label="Student Name"
                 value={result.student?.fullName}
@@ -251,9 +192,7 @@ export default function PrintableReportCard({ result }) {
               <Info
                 label="Class / Section"
                 value={`${result.student?.className || "-"}${
-                  result.student?.section
-                    ? ` / ${result.student.section}`
-                    : ""
+                  result.student?.section ? ` / ${result.student.section}` : ""
                 }`}
                 dense={dense}
               />
@@ -269,31 +208,21 @@ export default function PrintableReportCard({ result }) {
                 value={result.student?.motherName}
                 dense={dense}
               />
-
             </div>
-
           </div>
-
 
           {/* ================================= */}
           {/* ACADEMIC PERFORMANCE */}
           {/* ================================= */}
 
-          <div className={sectionGap}>
-
-            <SectionHeading dense={dense}>
-              Academic Performance
-            </SectionHeading>
-
+          <div className={`report-card-academic ${sectionGap}`}>
+            <SectionHeading dense={dense}>Academic Performance</SectionHeading>
 
             <table
-              className={`mt-1.5 w-full table-fixed border-collapse ${tableText}`}
+              className={`report-card-table mt-1.5 w-full table-fixed border-collapse ${tableText}`}
             >
-
               <thead>
-
                 <tr className="bg-[#0F4C81] text-white">
-
                   <th
                     className={`w-[28%] border border-[#0F4C81] px-2 text-left ${tablePadding}`}
                   >
@@ -323,18 +252,12 @@ export default function PrintableReportCard({ result }) {
                   >
                     Remarks
                   </th>
-
                 </tr>
-
               </thead>
 
-
               <tbody>
-
                 {result.subjects?.map((subject) => (
-
                   <tr key={subject.id}>
-
                     <td
                       className={`border border-slate-400 px-2 font-semibold ${tablePadding}`}
                     >
@@ -364,31 +287,19 @@ export default function PrintableReportCard({ result }) {
                     >
                       {subject.remarks || "-"}
                     </td>
-
                   </tr>
-
                 ))}
-
               </tbody>
-
             </table>
-
           </div>
-
 
           {/* ================================= */}
           {/* OVERALL PERFORMANCE */}
           {/* ================================= */}
 
           <div className={sectionGap}>
-
-            <SectionHeading dense={dense}>
-              Overall Performance
-            </SectionHeading>
-
-
+            <SectionHeading dense={dense}>Overall Performance</SectionHeading>
             <div className="mt-1.5 grid grid-cols-5 border border-slate-400">
-
               <Summary
                 label="Total"
                 value={`${result.totalObtained}/${result.totalMaximum}`}
@@ -419,186 +330,84 @@ export default function PrintableReportCard({ result }) {
                 dense={dense}
                 last
               />
-
             </div>
-
           </div>
-
 
           {/* ================================= */}
           {/* OVERALL REMARK */}
           {/* ================================= */}
 
-          <div
-            className={`${sectionGap} border border-slate-400`}
-          >
-
+          <div className={`${sectionGap} border border-slate-400`}>
             <div
-              className={`bg-slate-100 ${
-                dense
-                  ? "px-3 py-1"
-                  : "px-4 py-1.5"
-              }`}
+              className={`bg-slate-100 ${dense ? "px-3 py-1" : "px-4 py-1.5"}`}
             >
-
               <p
                 className={`font-bold uppercase tracking-wide ${
-                  dense
-                    ? "text-[8px]"
-                    : "text-[9px]"
+                  dense ? "text-[8px]" : "text-[9px]"
                 }`}
               >
                 Overall Remark
               </p>
-
             </div>
 
-
-            <div
-              className={
-                dense
-                  ? "px-3 py-1"
-                  : "px-4 py-1.5"
-              }
-            >
-
-              <p
-                className={
-                  dense
-                    ? "text-[9px]"
-                    : "text-[10px]"
-                }
-              >
-                {getOverallRemark(
-                  result.percentage
-                )}
+            <div className={dense ? "px-3 py-1" : "px-4 py-1.5"}>
+              <p className={dense ? "text-[9px]" : "text-[10px]"}>
+                {getOverallRemark(result.percentage)}
               </p>
-
             </div>
-
           </div>
-
 
           {/* ================================= */}
           {/* GRADING SCALE */}
           {/* ================================= */}
 
-          <div
-            className={
-              extraDense
-                ? "mt-1.5"
-                : dense
-                  ? "mt-2"
-                  : "mt-3"
-            }
-          >
-
+          <div className={extraDense ? "mt-1.5" : dense ? "mt-2" : "mt-3"}>
             <p
               className={`mb-1 font-bold uppercase tracking-wide text-slate-600 ${
-                dense
-                  ? "text-[8px]"
-                  : "text-[9px]"
+                dense ? "text-[8px]" : "text-[9px]"
               }`}
             >
               Grading Scale
             </p>
 
-
             <div
               className={`grid grid-cols-8 border border-slate-300 text-center ${
-                dense
-                  ? "text-[8px]"
-                  : "text-[9px]"
+                dense ? "text-[8px]" : "text-[9px]"
               }`}
             >
+              <GradeBox grade="A+" range="91-100" dense={dense} />
 
-              <GradeBox
-                grade="A+"
-                range="91-100"
-                dense={dense}
-              />
+              <GradeBox grade="A" range="81-90" dense={dense} />
 
-              <GradeBox
-                grade="A"
-                range="81-90"
-                dense={dense}
-              />
+              <GradeBox grade="B+" range="71-80" dense={dense} />
 
-              <GradeBox
-                grade="B+"
-                range="71-80"
-                dense={dense}
-              />
+              <GradeBox grade="B" range="61-70" dense={dense} />
 
-              <GradeBox
-                grade="B"
-                range="61-70"
-                dense={dense}
-              />
+              <GradeBox grade="C+" range="51-60" dense={dense} />
 
-              <GradeBox
-                grade="C+"
-                range="51-60"
-                dense={dense}
-              />
+              <GradeBox grade="C" range="41-50" dense={dense} />
 
-              <GradeBox
-                grade="C"
-                range="41-50"
-                dense={dense}
-              />
+              <GradeBox grade="D" range="33-40" dense={dense} />
 
-              <GradeBox
-                grade="D"
-                range="33-40"
-                dense={dense}
-              />
-
-              <GradeBox
-                grade="F"
-                range="<33"
-                dense={dense}
-                last
-              />
-
+              <GradeBox grade="F" range="<33" dense={dense} last />
             </div>
-
           </div>
-
 
           {/* ================================= */}
           {/* SIGNATURES */}
           {/* ================================= */}
 
           <div
-            className={`grid grid-cols-3 gap-10 ${
-              extraDense
-                ? "mt-5"
-                : dense
-                  ? "mt-6"
-                  : compact
-                    ? "mt-7"
-                    : "mt-9"
+            className={`report-card-signatures grid grid-cols-3 gap-10 ${
+              extraDense ? "mt-3" : dense ? "mt-4" : compact ? "mt-5" : "mt-6"
             }`}
           >
+            <Signature title="Class Teacher" dense={dense} />
 
-            <Signature
-              title="Class Teacher"
-              dense={dense}
-            />
+            <Signature title="Examination Controller" dense={dense} />
 
-            <Signature
-              title="Examination Controller"
-              dense={dense}
-            />
-
-            <Signature
-              title="Principal"
-              dense={dense}
-            />
-
+            <Signature title="Principal" dense={dense} />
           </div>
-
 
           {/* ================================= */}
           {/* FOOTER */}
@@ -606,12 +415,9 @@ export default function PrintableReportCard({ result }) {
 
           <div
             className={`border-t border-slate-300 text-center ${
-              dense
-                ? "mt-3 pt-1.5"
-                : "mt-4 pt-2"
+              dense ? "mt-3 pt-1.5" : "mt-4 pt-2"
             }`}
           >
-
             <p
               className={
                 dense
@@ -619,121 +425,76 @@ export default function PrintableReportCard({ result }) {
                   : "text-[8px] text-slate-500"
               }
             >
-              This report card is an official
-              academic performance record of
+              This report card is an official academic performance record of
               Dynamic English School.
             </p>
-
           </div>
-
         </div>
-
       </div>
-
     </div>
   );
 }
-
 
 // ===================================
 // Student Information
 // ===================================
 
-function Info({
-  label,
-  value,
-  dense,
-}) {
+function Info({ label, value, dense }) {
   return (
     <div
       className={`flex border-b border-r border-slate-300 ${
-        dense
-          ? "px-2 py-1"
-          : "px-3 py-1.5"
+        dense ? "px-2 py-1" : "px-3 py-1.5"
       }`}
     >
-
       <span
         className={`shrink-0 font-semibold text-slate-500 ${
-          dense
-            ? "w-24 text-[8px]"
-            : "w-28 text-[9px]"
+          dense ? "w-24 text-[8px]" : "w-28 text-[9px]"
         }`}
       >
         {label}
       </span>
 
-      <span
-        className={`font-bold ${
-          dense
-            ? "text-[9px]"
-            : "text-[10px]"
-        }`}
-      >
+      <span className={`font-bold ${dense ? "text-[9px]" : "text-[10px]"}`}>
         {value || "-"}
       </span>
-
     </div>
   );
 }
-
 
 // ===================================
 // Section Heading
 // ===================================
 
-function SectionHeading({
-  children,
-  dense,
-}) {
+function SectionHeading({ children, dense }) {
   return (
     <div className="flex items-center gap-2">
-
       <h3
         className={`whitespace-nowrap font-extrabold uppercase tracking-wider text-[#0F4C81] ${
-          dense
-            ? "text-[8px]"
-            : "text-[9px]"
+          dense ? "text-[8px]" : "text-[9px]"
         }`}
       >
         {children}
       </h3>
 
       <div className="h-px flex-1 bg-[#0F4C81]" />
-
     </div>
   );
 }
-
 
 // ===================================
 // Summary
 // ===================================
 
-function Summary({
-  label,
-  value,
-  dense,
-  last = false,
-}) {
+function Summary({ label, value, dense, last = false }) {
   return (
     <div
-      className={`text-center ${
-        dense
-          ? "px-1 py-1"
-          : "px-2 py-1.5"
-      } ${
-        last
-          ? ""
-          : "border-r border-slate-400"
+      className={`text-center ${dense ? "px-1 py-1" : "px-2 py-1.5"} ${
+        last ? "" : "border-r border-slate-400"
       }`}
     >
-
       <p
         className={`font-semibold uppercase text-slate-500 ${
-          dense
-            ? "text-[7px]"
-            : "text-[8px]"
+          dense ? "text-[7px]" : "text-[8px]"
         }`}
       >
         {label}
@@ -741,102 +502,58 @@ function Summary({
 
       <p
         className={`font-extrabold ${
-          dense
-            ? "mt-0.5 text-[10px]"
-            : "mt-1 text-xs"
+          dense ? "mt-0.5 text-[10px]" : "mt-1 text-xs"
         }`}
       >
         {value ?? "-"}
       </p>
-
     </div>
   );
 }
-
 
 // ===================================
 // Grading Scale
 // ===================================
 
-function GradeBox({
-  grade,
-  range,
-  dense,
-  last = false,
-}) {
+function GradeBox({ grade, range, dense, last = false }) {
   return (
     <div
-      className={`${
-        dense
-          ? "py-1"
-          : "py-1.5"
-      } ${
-        last
-          ? ""
-          : "border-r border-slate-300"
+      className={`${dense ? "py-1" : "py-1.5"} ${
+        last ? "" : "border-r border-slate-300"
       }`}
     >
+      <p className="font-bold">{grade}</p>
 
-      <p className="font-bold">
-        {grade}
-      </p>
-
-      <p className="mt-0.5 text-slate-500">
-        {range}
-      </p>
-
+      <p className="mt-0.5 text-slate-500">{range}</p>
     </div>
   );
 }
-
 
 // ===================================
 // Signature
 // ===================================
 
-function Signature({
-  title,
-  dense,
-}) {
+function Signature({ title, dense }) {
   return (
     <div className="text-center">
-
-      <div
-        className={
-          dense
-            ? "h-4"
-            : "h-6"
-        }
-      />
+      <div className={dense ? "h-4" : "h-6"} />
 
       <div className="border-t border-slate-600 pt-1">
-
-        <p
-          className={`font-bold ${
-            dense
-              ? "text-[8px]"
-              : "text-[9px]"
-          }`}
-        >
+        <p className={`font-bold ${dense ? "text-[8px]" : "text-[9px]"}`}>
           {title}
         </p>
 
         <p
           className={`mt-0.5 uppercase tracking-wide text-slate-500 ${
-            dense
-              ? "text-[6px]"
-              : "text-[7px]"
+            dense ? "text-[6px]" : "text-[7px]"
           }`}
         >
           Signature
         </p>
-
       </div>
-
     </div>
   );
 }
-
 
 // ===================================
 // Overall Remark
