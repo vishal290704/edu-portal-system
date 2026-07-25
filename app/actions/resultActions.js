@@ -12,18 +12,14 @@ import {
   calculateGrade,
   calculatePassFail,
   calculateSubjectResult,
+  calculateRemark,
 } from "@/lib/resultUtils";
-
 
 // ===================================
 // Get Student Result
 // ===================================
 
-export async function getStudentResult({
-  academicSession,
-  exam,
-  student,
-}) {
+export async function getStudentResult({ academicSession, exam, student }) {
   try {
     await connectDB();
 
@@ -38,14 +34,13 @@ export async function getStudentResult({
       };
     }
 
-
     // ===================================
     // Get Student
     // ===================================
 
     const studentDoc = await Student.findById(student)
       .select(
-        "admissionNo rollNo firstName lastName fatherName motherName dob className section"
+        "admissionNo rollNo firstName lastName fatherName motherName dob className section",
       )
       .lean();
 
@@ -56,14 +51,11 @@ export async function getStudentResult({
       };
     }
 
-
     // ===================================
     // Get Academic Session
     // ===================================
 
-    const sessionDoc = await AcademicSession.findById(
-      academicSession
-    )
+    const sessionDoc = await AcademicSession.findById(academicSession)
       .select("name")
       .lean();
 
@@ -74,14 +66,11 @@ export async function getStudentResult({
       };
     }
 
-
     // ===================================
     // Get Exam
     // ===================================
 
-    const examDoc = await Exam.findById(exam)
-      .select("examName")
-      .lean();
+    const examDoc = await Exam.findById(exam).select("examName").lean();
 
     if (!examDoc) {
       return {
@@ -89,7 +78,6 @@ export async function getStudentResult({
         message: "Exam not found.",
       };
     }
-
 
     // ===================================
     // Get Student Marks
@@ -100,12 +88,8 @@ export async function getStudentResult({
       exam,
       student,
     })
-      .populate(
-        "subject",
-        "_id subjectName subjectCode"
-      )
+      .populate("subject", "_id subjectName subjectCode")
       .lean();
-
 
     if (marks.length === 0) {
       return {
@@ -113,7 +97,6 @@ export async function getStudentResult({
         message: "No marks found for this student.",
       };
     }
-
 
     // ===================================
     // Calculate Subject Results
@@ -129,11 +112,7 @@ export async function getStudentResult({
       totalObtained += obtained;
       totalMaximum += maximum;
 
-      const subjectResult =
-        calculateSubjectResult(
-          obtained,
-          maximum
-        );
+      const subjectResult = calculateSubjectResult(obtained, maximum);
 
       return {
         id: mark.subject?._id?.toString() || "",
@@ -146,99 +125,71 @@ export async function getStudentResult({
         percentage: subjectResult.percentage,
         grade: subjectResult.grade,
 
-        remarks: mark.remarks || "",
+        remarks: calculateRemark(subjectResult.percentage),
       };
     });
-
 
     // ===================================
     // Overall Result
     // ===================================
 
-    const percentage = calculatePercentage(
-      totalObtained,
-      totalMaximum
-    );
+    const percentage = calculatePercentage(totalObtained, totalMaximum);
 
     const grade = calculateGrade(percentage);
 
-    const result = calculatePassFail(
-      totalObtained,
-      totalMaximum
-    );
-
+    const result = calculatePassFail(totalObtained, totalMaximum);
 
     // ===================================
     // Student Historical Class Snapshot
     // ===================================
 
-    const className =
-      marks[0]?.className ||
-      studentDoc.className;
+    const className = marks[0]?.className || studentDoc.className;
 
-    const section =
-      marks[0]?.section ||
-      studentDoc.section;
+    const section = marks[0]?.section || studentDoc.section;
 
-      // ===================================
-// Calculate Class Rank
-// ===================================
+    // ===================================
+    // Calculate Class Rank
+    // ===================================
 
-const classMarks = await Mark.find({
-  academicSession,
-  exam,
-  className,
-  section,
-})
-  .select("student obtainedMarks maximumMarks")
-  .lean();
+    const classMarks = await Mark.find({
+      academicSession,
+      exam,
+      className,
+      section,
+    })
+      .select("student obtainedMarks maximumMarks")
+      .lean();
 
-const studentTotals = {};
+    const studentTotals = {};
 
-for (const mark of classMarks) {
-  const studentId = mark.student.toString();
+    for (const mark of classMarks) {
+      const studentId = mark.student.toString();
 
-  if (!studentTotals[studentId]) {
-    studentTotals[studentId] = {
-      obtained: 0,
-      maximum: 0,
-    };
-  }
+      if (!studentTotals[studentId]) {
+        studentTotals[studentId] = {
+          obtained: 0,
+          maximum: 0,
+        };
+      }
 
-  studentTotals[studentId].obtained +=
-    Number(mark.obtainedMarks);
+      studentTotals[studentId].obtained += Number(mark.obtainedMarks);
 
-  studentTotals[studentId].maximum +=
-    Number(mark.maximumMarks);
-}
+      studentTotals[studentId].maximum += Number(mark.maximumMarks);
+    }
 
-const rankedStudents = Object.entries(
-  studentTotals
-)
-  .map(([studentId, totals]) => ({
-    studentId,
+    const rankedStudents = Object.entries(studentTotals)
+      .map(([studentId, totals]) => ({
+        studentId,
 
-    percentage: calculatePercentage(
-      totals.obtained,
-      totals.maximum
-    ),
-  }))
-  .sort(
-    (a, b) =>
-      b.percentage - a.percentage
-  );
+        percentage: calculatePercentage(totals.obtained, totals.maximum),
+      }))
+      .sort((a, b) => b.percentage - a.percentage);
 
-const studentRankIndex =
-  rankedStudents.findIndex(
-    (item) =>
-      item.studentId === student.toString()
-  );
+    const studentRankIndex = rankedStudents.findIndex(
+      (item) => item.studentId === student.toString(),
+    );
 
-const rank =
-  studentRankIndex === -1
-    ? null
-    : studentRankIndex + 1;
-
+    const rank = studentRankIndex === -1 ? null : studentRankIndex + 1;
 
     // ===================================
     // Return Result
@@ -250,32 +201,23 @@ const rank =
       student: {
         id: studentDoc._id.toString(),
 
-        admissionNo:
-          studentDoc.admissionNo || "",
+        admissionNo: studentDoc.admissionNo || "",
 
-        rollNo:
-          studentDoc.rollNo || "",
+        rollNo: studentDoc.rollNo || "",
 
-        firstName:
-          studentDoc.firstName || "",
+        firstName: studentDoc.firstName || "",
 
-        lastName:
-          studentDoc.lastName || "",
+        lastName: studentDoc.lastName || "",
 
-        fullName:
-          `${studentDoc.firstName || ""} ${
-            studentDoc.lastName || ""
-          }`.trim(),
+        fullName: `${studentDoc.firstName || ""} ${
+          studentDoc.lastName || ""
+        }`.trim(),
 
-        fatherName:
-          studentDoc.fatherName || "",
+        fatherName: studentDoc.fatherName || "",
 
-        motherName:
-          studentDoc.motherName || "",
+        motherName: studentDoc.motherName || "",
 
-        dob: studentDoc.dob
-          ? studentDoc.dob.toISOString()
-          : null,
+        dob: studentDoc.dob ? studentDoc.dob.toISOString() : null,
 
         className,
         section,
@@ -302,10 +244,7 @@ const rank =
       rank,
     };
   } catch (error) {
-    console.error(
-      "Get Student Result Error:",
-      error
-    );
+    console.error("Get Student Result Error:", error);
 
     return {
       success: false,
