@@ -121,9 +121,11 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+
   html {
     @apply font-sans;
   }
@@ -165,62 +167,181 @@ body {
   width: min(1280px, 92%);
   margin-inline: auto;
 }
+
+/* ==========================================
+   REPORT CARD - SCREEN PREVIEW
+========================================== */
+
+.report-preview-section {
+  width: 100%;
+  overflow: hidden;
+}
+
+.report-preview-viewport {
+  width: 100%;
+  padding: 32px;
+
+  background: #e2e8f0;
+
+  box-sizing: border-box;
+  overflow-x: auto;
+}
+
+.report-preview-paper {
+  width: min(794px, 100%);
+  aspect-ratio: 210 / 297;
+
+  margin: 0 auto;
+
+  background: white;
+
+  box-sizing: border-box;
+
+  box-shadow:
+    0 2px 8px rgba(15, 23, 42, 0.08),
+    0 16px 40px rgba(15, 23, 42, 0.12);
+}
+
+/* ==========================================
+   REPORT CARD - SCREEN DOCUMENT
+========================================== */
+
+@media screen {
+  #printable-report-card {
+    width: 100%;
+    height: 100%;
+
+    margin: 0;
+
+    background: white;
+
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  .report-card-outer {
+    width: 100%;
+    height: 100%;
+
+    box-sizing: border-box;
+
+    border: 2px solid #0f4c81;
+
+    padding: 3px;
+  }
+
+  .report-card-inner {
+    width: 100%;
+    height: 100%;
+
+    box-sizing: border-box;
+
+    border: 1px solid #0f4c81;
+
+    padding: 16px 20px;
+
+    display: flex;
+    flex-direction: column;
+
+    overflow: hidden;
+  }
+
+  .report-card-academic {
+    display: flex;
+    flex-direction: column;
+
+    flex: 1 1 0;
+
+    min-height: 0;
+  }
+
+  .report-card-table {
+    width: 100%;
+
+    flex: 1 1 auto;
+
+    table-layout: fixed;
+    border-collapse: collapse;
+  }
+
+  .report-card-table tbody {
+    height: 100%;
+  }
+
+  .report-card-table tbody tr {
+    height: calc(100% / var(--subject-count, 8));
+  }
+
+  .report-card-signatures {
+    flex-shrink: 0;
+  }
+}
+
+/* ==========================================
+   SMALL SCREEN PREVIEW
+========================================== */
+
+@media screen and (max-width: 768px) {
+  .report-preview-viewport {
+    padding: 16px;
+  }
+}
+
 /* ==========================================
    REPORT CARD - A4 PRINT
 ========================================== */
 
 @media print {
-
-  /* ==========================================
-     A4 PAGE
-  ========================================== */
-
   @page {
     size: A4 portrait;
     margin: 8mm;
   }
 
+  /*
+   * Keep the print document itself limited
+   * to the printable A4 area.
+   */
   html,
   body {
+    width: 100% !important;
+    height: 100% !important;
+
     margin: 0 !important;
     padding: 0 !important;
 
-    width: 100% !important;
-    height: 281mm !important;
+    overflow: hidden !important;
 
     background: white !important;
-
-    overflow: hidden !important;
   }
 
-  /* ==========================================
-     HIDE WEBSITE
-  ========================================== */
-
+  /*
+   * Hide the normal admin interface.
+   */
   body * {
     visibility: hidden !important;
   }
 
-  /* ==========================================
-     SHOW ONLY REPORT CARD
-  ========================================== */
-
+  /*
+   * Show only the report.
+   */
   #printable-report-card,
   #printable-report-card * {
     visibility: visible !important;
   }
 
-  /* ==========================================
-     POSITION REPORT DIRECTLY ON A4
-  ========================================== */
-
+  /*
+   * Important:
+   * fixed positioning removes the report from
+   * the dashboard's normal document flow.
+   *
+   * There is only ONE declaration for this
+   * element now.
+   */
   #printable-report-card {
     position: fixed !important;
 
     top: 0 !important;
-    left: 50% !important;
-
-    transform: translateX(-50%) !important;
+    left: 0 !important;
 
     width: 194mm !important;
     height: 280mm !important;
@@ -231,11 +352,15 @@ body {
     margin: 0 !important;
     padding: 0 !important;
 
+    transform: none !important;
+
     box-sizing: border-box !important;
 
     overflow: hidden !important;
 
     background: white !important;
+
+    z-index: 999999 !important;
 
     print-color-adjust: exact !important;
     -webkit-print-color-adjust: exact !important;
@@ -244,8 +369,35 @@ body {
     page-break-inside: avoid !important;
   }
 
+  /*
+   * Preview wrappers must not create their
+   * own printable page dimensions.
+   */
+  .report-preview-section,
+  .report-preview-viewport,
+  .report-preview-paper {
+    width: auto !important;
+    height: auto !important;
+
+    min-width: 0 !important;
+    min-height: 0 !important;
+
+    max-width: none !important;
+    max-height: none !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    overflow: visible !important;
+
+    border: 0 !important;
+    box-shadow: none !important;
+
+    background: transparent !important;
+  }
+
   /* ==========================================
-     OUTER BORDER
+     REPORT BORDER
   ========================================== */
 
   .report-card-outer {
@@ -262,10 +414,6 @@ body {
 
     overflow: hidden !important;
   }
-
-  /* ==========================================
-     INNER BORDER
-  ========================================== */
 
   .report-card-inner {
     width: 100% !important;
@@ -284,7 +432,7 @@ body {
   }
 
   /* ==========================================
-     ACADEMIC PERFORMANCE AREA
+     DYNAMIC ACADEMIC AREA
   ========================================== */
 
   .report-card-academic {
@@ -296,28 +444,18 @@ body {
     min-height: 0 !important;
   }
 
-  /* ==========================================
-     MARKS TABLE
-  ========================================== */
-
   .report-card-table {
     width: 100% !important;
 
     flex: 1 1 auto !important;
 
     table-layout: fixed !important;
-
     border-collapse: collapse !important;
   }
 
   .report-card-table tbody {
     height: 100% !important;
   }
-
-  /*
-   * Automatically distribute available
-   * table height between all subjects.
-   */
 
   .report-card-table tbody tr {
     height: calc(
@@ -334,18 +472,18 @@ body {
   }
 
   /* ==========================================
-     PAGE BREAK PROTECTION
+     PREVENT REPORT SPLITTING
   ========================================== */
 
   #printable-report-card,
   .report-card-outer,
   .report-card-inner,
   .report-card-academic,
-  .report-card-signatures,
   .report-card-table,
   .report-card-table thead,
   .report-card-table tbody,
-  .report-card-table tr {
+  .report-card-table tr,
+  .report-card-signatures {
     break-inside: avoid !important;
     page-break-inside: avoid !important;
   }

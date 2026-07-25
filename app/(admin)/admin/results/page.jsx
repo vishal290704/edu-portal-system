@@ -23,7 +23,6 @@ export default function ResultsPage() {
     try {
       setLoading(true);
 
-      // Hide old report card when filters change
       setShowReportCard(false);
 
       const response = await getStudentResult(filters);
@@ -35,6 +34,7 @@ export default function ResultsPage() {
       }
     } catch (error) {
       console.error(error);
+
       setResult(null);
     } finally {
       setLoading(false);
@@ -43,33 +43,46 @@ export default function ResultsPage() {
 
   return (
     <div className="space-y-6">
+
       {/* ================================= */}
       {/* PAGE HEADER */}
       {/* ================================= */}
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
         <div>
-          <h1 className="text-3xl font-bold">Results</h1>
+          <h1 className="text-3xl font-bold">
+            Results
+          </h1>
 
           <p className="text-muted-foreground">
             View student examination results.
           </p>
         </div>
 
-        {/* View / Hide Report Card */}
-
         {result && !loading && (
-          <Button onClick={() => setShowReportCard((prev) => !prev)}>
-            {showReportCard ? "Hide Report Card" : "View Report Card"}
+          <Button
+            onClick={() =>
+              setShowReportCard((prev) => !prev)
+            }
+          >
+            {showReportCard
+              ? "Hide Report Card"
+              : "View Report Card"}
           </Button>
         )}
+
       </div>
+
 
       {/* ================================= */}
       {/* RESULT FILTERS */}
       {/* ================================= */}
 
-      <ResultFilters onStudentChange={handleStudentChange} />
+      <ResultFilters
+        onStudentChange={handleStudentChange}
+      />
+
 
       {/* ================================= */}
       {/* RESULT DETAILS */}
@@ -83,36 +96,45 @@ export default function ResultsPage() {
         <StudentResultCard result={result} />
       )}
 
-      {/* ================================= */}
-      {/* REPORT CARD PREVIEW */}
-      {/* ================================= */}
 
       {/* ================================= */}
       {/* REPORT CARD PREVIEW */}
       {/* ================================= */}
 
       {result && showReportCard && (
-        <div className="overflow-hidden rounded-xl border bg-white shadow-sm">
-          {/* Preview Toolbar */}
 
-          <div className="flex flex-col gap-4 border-b bg-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="report-preview-section rounded-xl border bg-white shadow-sm">
+
+          {/* ============================= */}
+          {/* TOOLBAR */}
+          {/* ============================= */}
+
+          <div className="flex flex-col gap-4 border-b px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+
             <div>
+
               <h2 className="text-xl font-bold text-slate-900">
                 Report Card Preview
               </h2>
 
               <p className="mt-1 text-sm text-slate-500">
-                Preview the final report card before printing.
+                Preview the final A4 report card before printing.
               </p>
+
             </div>
 
+
             <div className="flex items-center gap-3">
+
               <Button
                 variant="outline"
-                onClick={() => setShowReportCard(false)}
+                onClick={() =>
+                  setShowReportCard(false)
+                }
               >
                 Close Preview
               </Button>
+
 
               <Button
                 onClick={() => window.print()}
@@ -120,16 +142,32 @@ export default function ResultsPage() {
               >
                 Print Report Card
               </Button>
+
             </div>
+
           </div>
 
-          {/* Report Card */}
+
+          {/* ============================= */}
+          {/* A4 PREVIEW */}
+          {/* ============================= */}
 
           <div className="report-preview-viewport">
-            <PrintableReportCard result={result} />
+
+            <div className="report-preview-paper">
+
+              <PrintableReportCard
+                result={result}
+              />
+
+            </div>
+
           </div>
+
         </div>
+
       )}
+
     </div>
   );
 }
