@@ -15,80 +15,59 @@ export default function ResultsPage() {
   const [loading, setLoading] = useState(false);
 
   // Controls whether report card is visible
-  const [showReportCard, setShowReportCard] =
-    useState(false);
+  const [showReportCard, setShowReportCard] = useState(false);
 
-  const handleStudentChange = useCallback(
-    async (filters) => {
-      try {
-        setLoading(true);
+  const handleStudentChange = useCallback(async (filters) => {
+    try {
+      setLoading(true);
 
-        // Hide previous report card
-        setShowReportCard(false);
+      // Hide previous report card
+      setShowReportCard(false);
 
-        const response =
-          await getStudentResult(filters);
+      const response = await getStudentResult(filters);
 
-        if (response.success) {
-          setResult(response);
-        } else {
-          setResult(null);
-        }
-      } catch (error) {
-        console.error(error);
+      if (response.success) {
+        setResult(response);
+      } else {
         setResult(null);
-      } finally {
-        setLoading(false);
       }
-    },
-    []
-  );
+    } catch (error) {
+      console.error(error);
+      setResult(null);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   return (
     <div className="space-y-6">
-
       {/* ============================= */}
       {/* Page Header */}
       {/* ============================= */}
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-
         <div>
-          <h1 className="text-3xl font-bold">
-            Results
-          </h1>
+          <h1 className="text-3xl font-bold">Results</h1>
 
           <p className="text-muted-foreground">
             View student examination results.
           </p>
         </div>
 
-
         {/* Report Card Button */}
 
         {result && !loading && (
-          <Button
-            onClick={() =>
-              setShowReportCard((prev) => !prev)
-            }
-          >
-            {showReportCard
-              ? "Hide Report Card"
-              : "View Report Card"}
+          <Button onClick={() => setShowReportCard((prev) => !prev)}>
+            {showReportCard ? "Hide Report Card" : "View Report Card"}
           </Button>
         )}
-
       </div>
-
 
       {/* ============================= */}
       {/* Result Filters */}
       {/* ============================= */}
 
-      <ResultFilters
-        onStudentChange={handleStudentChange}
-      />
-
+      <ResultFilters onStudentChange={handleStudentChange} />
 
       {/* ============================= */}
       {/* Loading / Result */}
@@ -102,40 +81,34 @@ export default function ResultsPage() {
         <StudentResultCard result={result} />
       )}
 
-
       {/* ============================= */}
       {/* Printable Report Card */}
       {/* ============================= */}
 
       {result && showReportCard && (
         <div className="rounded-xl border bg-slate-100 p-4 sm:p-8">
-
           <div className="mb-5 flex items-center justify-between">
-
             <div>
-              <h2 className="text-xl font-bold">
-                Report Card Preview
-              </h2>
+              <h2 className="text-xl font-bold">Report Card Preview</h2>
 
               <p className="text-sm text-gray-500">
-                Preview the student's report card.
+                Preview and print the student's report card.
               </p>
             </div>
 
+            <Button
+              onClick={() => window.print()}
+              className="bg-[#0F4C81] hover:bg-[#0C3D68]"
+            >
+              Print Report Card
+            </Button>
           </div>
-
 
           <div className="overflow-x-auto">
-
-            <PrintableReportCard
-              result={result}
-            />
-
+            <PrintableReportCard result={result} />
           </div>
-
         </div>
       )}
-
     </div>
   );
 }
