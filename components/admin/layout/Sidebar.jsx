@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   ShieldCheck,
   Users,
+  UserRound,
   FileText,
   ClipboardList,
   Settings,
@@ -31,6 +32,11 @@ const menuItems = [
     title: "Students",
     href: "/admin/students",
     icon: Users,
+  },
+  {
+    title: "Teachers",
+    href: "/admin/teachers",
+    icon: UserRound,
   },
   {
     title: "Academic Sessions",
@@ -81,7 +87,9 @@ export default function Sidebar() {
         </div>
 
         <div>
-          <h2 className="text-lg font-bold text-slate-900">Dynamic English</h2>
+          <h2 className="text-lg font-bold text-slate-900">
+            Dynamic English
+          </h2>
 
           <p className="text-sm text-slate-500">Admin Panel</p>
         </div>
@@ -91,6 +99,7 @@ export default function Sidebar() {
       <nav className="flex-1 space-y-2 px-4 py-6">
         {menuItems.map((item) => {
           const Icon = item.icon;
+
           const active =
             item.href === "/admin"
               ? pathname === "/admin"

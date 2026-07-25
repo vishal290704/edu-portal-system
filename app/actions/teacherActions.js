@@ -2,7 +2,7 @@
 
 import connectDB from "@/lib/mongodb";
 import Teacher from "@/models/Teacher";
-
+import { getCurrentUser } from "@/lib/auth";
 // ===================================
 // Create Teacher
 // ===================================
@@ -380,6 +380,65 @@ export async function updateTeacherStatus(
       success: false,
       message:
         "Failed to update teacher status.",
+    };
+  }
+}
+
+export async function getCurrentTeacher() {
+  try {
+    await connectDB();
+
+    const currentUser = await getCurrentUser();
+
+    if (!currentUser) {
+      return {
+        success: false,
+        message: "Unauthorized.",
+      };
+    }
+
+    if (currentUser.role !== "TEACHER") {
+      return {
+        success: false,
+        message: "Teacher access required.",
+      };
+    }
+
+    if (!currentUser.teacherId) {
+      return {
+        success: false,
+        message: "Teacher profile is not linked to this account.",
+      };
+    }
+
+    const teacher = await Teacher.findById(
+      currentUser.teacherId,
+    ).lean();
+
+    if (!teacher) {
+      return {
+        success: false,
+        message: "Teacher profile not found.",
+      };
+    }
+
+    if (teacher.status !== "ACTIVE") {
+      return {
+        success: false,
+        message: "Teacher profile is inactive.",
+      };
+    }
+
+    return {
+      success: true,
+      teacher: JSON.parse(JSON.stringify(teacher)),
+    };
+  } catch (error) {
+    console.error("Get Current Teacher Error:", error);
+
+    return {
+      success: false,
+      message: "Failed to load teacher profile.",
     };
   }
 }

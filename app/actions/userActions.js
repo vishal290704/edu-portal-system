@@ -8,12 +8,12 @@ import User from "@/models/User";
 import { getCurrentUser } from "@/lib/auth";
 import { requireRole } from "@/lib/authorize";
 import { createUserSchema, updateUserSchema } from "@/lib/validations/user";
+import Teacher from "@/models/Teacher";
 
 export async function createUser(formData) {
   try {
     await connectDB();
 
-    // Logged in user
     const currentUser = await getCurrentUser();
 
     if (!currentUser) {
@@ -23,7 +23,6 @@ export async function createUser(formData) {
       };
     }
 
-    // Only SUPER_ADMIN can create users
     requireRole(currentUser, ["SUPER_ADMIN"]);
 
     const validation = createUserSchema.safeParse({
@@ -41,7 +40,10 @@ export async function createUser(formData) {
 
     const { username, password, role } = validation.data;
 
-    // Check duplicate username
+    // ===================================
+    // Duplicate Username
+    // ===================================
+
     const existingUser = await User.findOne({ username });
 
     if (existingUser) {
@@ -51,14 +53,68 @@ export async function createUser(formData) {
       };
     }
 
-    // Hash password
+    // ===================================
+    // Teacher Validation
+    // ===================================
+
+    let teacherId = null;
+
+    if (role === "TEACHER") {
+      teacherId = formData.get("teacherId");
+
+      if (!teacherId) {
+        return {
+          success: false,
+          message: "Please select a teacher.",
+        };
+      }
+
+      const teacher = await Teacher.findById(teacherId);
+
+      if (!teacher) {
+        return {
+          success: false,
+          message: "Teacher not found.",
+        };
+      }
+
+      if (teacher.status !== "ACTIVE") {
+        return {
+          success: false,
+          message:
+            "Cannot create an account for an inactive teacher.",
+        };
+      }
+
+      // One teacher = one login account
+      const existingTeacherAccount = await User.findOne({
+        teacherId,
+      });
+
+      if (existingTeacherAccount) {
+        return {
+          success: false,
+          message:
+            "This teacher already has a user account.",
+        };
+      }
+    }
+
+    // ===================================
+    // Hash Password
+    // ===================================
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
+    // ===================================
+    // Create User
+    // ===================================
+
     const user = await User.create({
       username,
       password: hashedPassword,
       role,
+      teacherId: role === "TEACHER" ? teacherId : null,
       mustChangePassword: true,
       isActive: true,
       createdBy: currentUser.id,
@@ -95,7 +151,6 @@ export async function updateUser(formData) {
       };
     }
 
-    // Only SUPER_ADMIN can update users
     requireRole(currentUser, ["SUPER_ADMIN"]);
 
     const validation = updateUserSchema.safeParse({
@@ -113,7 +168,10 @@ export async function updateUser(formData) {
 
     const { id, username, role } = validation.data;
 
-    // Check if user exists
+    // ===================================
+    // Find User
+    // ===================================
+
     const user = await User.findById(id);
 
     if (!user) {
@@ -123,7 +181,10 @@ export async function updateUser(formData) {
       };
     }
 
-    // Prevent duplicate usernames
+    // ===================================
+    // Duplicate Username
+    // ===================================
+
     const existingUser = await User.findOne({
       username,
       _id: { $ne: id },
@@ -136,8 +197,64 @@ export async function updateUser(formData) {
       };
     }
 
+    // ===================================
+    // Teacher Validation
+    // ===================================
+
+    let teacherId = null;
+
+    if (role === "TEACHER") {
+      teacherId = formData.get("teacherId");
+
+      if (!teacherId) {
+        return {
+          success: false,
+          message: "Please select a teacher.",
+        };
+      }
+
+      const teacher = await Teacher.findById(teacherId);
+
+      if (!teacher) {
+        return {
+          success: false,
+          message: "Teacher not found.",
+        };
+      }
+
+      if (teacher.status !== "ACTIVE") {
+        return {
+          success: false,
+          message:
+            "Cannot assign an inactive teacher to a user account.",
+        };
+      }
+
+      const existingTeacherAccount = await User.findOne({
+        teacherId,
+        _id: { $ne: id },
+      });
+
+      if (existingTeacherAccount) {
+        return {
+          success: false,
+          message:
+            "This teacher already has another user account.",
+        };
+      }
+    }
+
+    // ===================================
+    // Update
+    // ===================================
+
     user.username = username;
     user.role = role;
+
+    // Important:
+    // ADMIN must not retain an old teacherId.
+    user.teacherId =
+      role === "TEACHER" ? teacherId : null;
 
     await user.save();
 
