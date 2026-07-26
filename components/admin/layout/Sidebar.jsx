@@ -14,6 +14,7 @@ import {
   GraduationCap,
   Calendar,
   BookOpen,
+  BookUser,
   FileSpreadsheet,
 } from "lucide-react";
 
@@ -48,6 +49,11 @@ const menuItems = [
     href: "/admin/subjects",
     icon: BookOpen,
   },
+  {
+  title: "Teacher Assignments",
+  href: "/admin/teacher-assignments",
+  icon: BookUser,
+},
   {
     title: "Exams",
     href: "/admin/exams",
