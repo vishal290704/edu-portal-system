@@ -10,6 +10,7 @@ import {
   createSubject,
   updateSubject,
 } from "@/app/actions/subjectActions";
+
 import { CLASS_OPTIONS } from "@/constants/classes";
 
 export default function SubjectForm({
@@ -25,7 +26,6 @@ export default function SubjectForm({
       subjectName: initialData.subjectName || "",
       subjectCode: initialData.subjectCode || "",
       applicableClasses: initialData.applicableClasses || [],
-      assignedTeacher: initialData.assignedTeacher || "",
       status: initialData.status ?? true,
     };
   }
@@ -71,7 +71,10 @@ export default function SubjectForm({
     let result;
 
     if (initialData._id) {
-      result = await updateSubject(initialData._id, formData);
+      result = await updateSubject(
+        initialData._id,
+        formData
+      );
     } else {
       result = await createSubject(formData);
     }
@@ -125,7 +128,9 @@ export default function SubjectForm({
             >
               <input
                 type="checkbox"
-                checked={formData.applicableClasses.includes(cls)}
+                checked={formData.applicableClasses.includes(
+                  cls
+                )}
                 onChange={() => handleClassChange(cls)}
               />
 
@@ -162,8 +167,8 @@ export default function SubjectForm({
           {loading
             ? "Saving..."
             : initialData._id
-            ? "Update Subject"
-            : "Create Subject"}
+              ? "Update Subject"
+              : "Create Subject"}
         </Button>
       </div>
     </form>

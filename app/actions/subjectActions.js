@@ -2,7 +2,6 @@
 
 import connectDB from "@/lib/mongodb";
 import Subject from "@/models/Subject";
-
 import { revalidatePath } from "next/cache";
 
 // ============================
@@ -41,7 +40,6 @@ export async function createSubject(data) {
       subjectName,
       subjectCode,
       applicableClasses: data.applicableClasses,
-      assignedTeacher: data.assignedTeacher || null,
       status: data.status ?? true,
     });
 
@@ -70,8 +68,9 @@ export async function getSubjects() {
   try {
     await connectDB();
 
-    const subjects = await Subject.find()
-      .sort({ subjectName: 1 });
+    const subjects = await Subject.find().sort({
+      subjectName: 1,
+    });
 
     return JSON.parse(JSON.stringify(subjects));
   } catch (error) {
@@ -118,7 +117,6 @@ export async function updateSubject(id, data) {
       subjectName,
       subjectCode,
       applicableClasses: data.applicableClasses,
-      assignedTeacher: data.assignedTeacher || null,
       status: data.status,
     });
 

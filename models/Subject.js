@@ -25,12 +25,6 @@ const subjectSchema = new mongoose.Schema(
       },
     },
 
-    assignedTeacher: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Teacher",
-      default: null,
-    },
-
     status: {
       type: Boolean,
       default: true,
