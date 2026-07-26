@@ -8,6 +8,7 @@ import TeacherAssignment from "@/models/TeacherAssignment";
 import Teacher from "@/models/Teacher";
 import Subject from "@/models/Subject";
 import AcademicSession from "@/models/AcademicSession";
+import { getCurrentUser } from "@/lib/auth";
 
 // ===================================
 // Create Teacher Assignment
@@ -561,6 +562,126 @@ export async function getAssignmentsByTeacher(
       message:
         "Failed to load teacher assignments.",
       assignments: [],
+    };
+  }
+}
+
+// ===================================
+// Get Logged-In Teacher Assignments
+// ===================================
+
+export async function getCurrentTeacherAssignments() {
+  try {
+    await connectDB();
+
+    const currentUser = await getCurrentUser();
+
+    if (!currentUser) {
+      return {
+        success: false,
+        message: "Unauthorized.",
+        assignments: [],
+        session: null,
+      };
+    }
+
+    if (currentUser.role !== "TEACHER") {
+      return {
+        success: false,
+        message: "Teacher access required.",
+        assignments: [],
+        session: null,
+      };
+    }
+
+    if (!currentUser.teacherId) {
+      return {
+        success: false,
+        message: "Teacher profile is not linked to this account.",
+        assignments: [],
+        session: null,
+      };
+    }
+
+    // Active session
+    const activeSession = await AcademicSession.findOne({
+      isActive: true,
+    }).lean();
+
+    if (!activeSession) {
+      return {
+        success: false,
+        message: "No active academic session found.",
+        assignments: [],
+        session: null,
+      };
+    }
+
+    // Validate teacher
+    const teacher = await Teacher.findById(
+      currentUser.teacherId
+    ).lean();
+
+    if (!teacher) {
+      return {
+        success: false,
+        message: "Teacher profile not found.",
+        assignments: [],
+        session: null,
+      };
+    }
+
+    if (teacher.status !== "ACTIVE") {
+      return {
+        success: false,
+        message: "Teacher profile is inactive.",
+        assignments: [],
+        session: null,
+      };
+    }
+
+    // Teacher assignments
+    const assignments = await TeacherAssignment.find({
+      teacher: currentUser.teacherId,
+      academicSession: activeSession._id,
+      status: true,
+    })
+      .populate(
+        "subject",
+        "subjectName subjectCode"
+      )
+      .sort({
+        className: 1,
+        section: 1,
+      })
+      .lean();
+
+    return {
+      success: true,
+
+      teacher: JSON.parse(
+        JSON.stringify(teacher)
+      ),
+
+      session: JSON.parse(
+        JSON.stringify(activeSession)
+      ),
+
+      assignments: JSON.parse(
+        JSON.stringify(assignments)
+      ),
+    };
+  } catch (error) {
+    console.error(
+      "Get Current Teacher Assignments Error:",
+      error
+    );
+
+    return {
+      success: false,
+      message: "Failed to load teacher assignments.",
+      assignments: [],
+      session: null,
     };
   }
 }
