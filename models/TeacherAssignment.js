@@ -51,6 +51,15 @@ const teacherAssignmentSchema = new mongoose.Schema(
     },
 
     // ===================================
+    // Class Teacher
+    // ===================================
+
+    isClassTeacher: {
+      type: Boolean,
+      default: false,
+    },
+
+    // ===================================
     // Status
     // ===================================
 
@@ -64,8 +73,13 @@ const teacherAssignmentSchema = new mongoose.Schema(
   }
 );
 
-// One subject of a class-section should have only
-// one teacher in the same academic session.
+// ===================================
+// Unique Subject Assignment
+// ===================================
+
+// One subject of a class-section should
+// have only one teacher in the same session.
+
 teacherAssignmentSchema.index(
   {
     academicSession: 1,
@@ -75,6 +89,28 @@ teacherAssignmentSchema.index(
   },
   {
     unique: true,
+  }
+);
+
+// ===================================
+// Unique Class Teacher
+// ===================================
+
+// One class-section should have only
+// one class teacher in the same session.
+
+teacherAssignmentSchema.index(
+  {
+    academicSession: 1,
+    className: 1,
+    section: 1,
+  },
+  {
+    unique: true,
+    partialFilterExpression: {
+      isClassTeacher: true,
+    },
+    name: "unique_class_teacher_per_section",
   }
 );
 

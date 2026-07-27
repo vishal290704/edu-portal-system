@@ -8,7 +8,31 @@ import TeacherAssignment from "@/models/TeacherAssignment";
 import Teacher from "@/models/Teacher";
 import Subject from "@/models/Subject";
 import AcademicSession from "@/models/AcademicSession";
+
 import { getCurrentUser } from "@/lib/auth";
+
+// ===================================
+// Duplicate Key Error Helper
+// ===================================
+
+function getDuplicateErrorMessage(error) {
+  if (error?.code !== 11000) {
+    return null;
+  }
+
+  // Unique class teacher index
+  if (
+    error?.keyPattern?.academicSession &&
+    error?.keyPattern?.className &&
+    error?.keyPattern?.section &&
+    !error?.keyPattern?.subject
+  ) {
+    return "A class teacher is already assigned to this class and section.";
+  }
+
+  // Unique subject assignment index
+  return "This subject is already assigned for the selected class and section.";
+}
 
 // ===================================
 // Create Teacher Assignment
@@ -23,6 +47,7 @@ export async function createTeacherAssignment(data) {
       className,
       section,
       subjectId,
+      isClassTeacher = false,
     } = data;
 
     // ===================================
@@ -40,6 +65,10 @@ export async function createTeacherAssignment(data) {
         message: "All fields are required.",
       };
     }
+
+    const normalizedSection = section
+      .trim()
+      .toUpperCase();
 
     // ===================================
     // Get Active Academic Session
@@ -62,9 +91,8 @@ export async function createTeacherAssignment(data) {
     // Validate Teacher
     // ===================================
 
-    const teacher = await Teacher.findById(
-      teacherId,
-    );
+    const teacher =
+      await Teacher.findById(teacherId);
 
     if (!teacher) {
       return {
@@ -85,9 +113,8 @@ export async function createTeacherAssignment(data) {
     // Validate Subject
     // ===================================
 
-    const subject = await Subject.findById(
-      subjectId,
-    );
+    const subject =
+      await Subject.findById(subjectId);
 
     if (!subject) {
       return {
@@ -110,7 +137,7 @@ export async function createTeacherAssignment(data) {
 
     if (
       !subject.applicableClasses.includes(
-        className,
+        className
       )
     ) {
       return {
@@ -120,19 +147,19 @@ export async function createTeacherAssignment(data) {
       };
     }
 
-    const normalizedSection = section
-      .trim()
-      .toUpperCase();
-
     // ===================================
-    // Check Existing Assignment
+    // Check Existing Subject Assignment
     // ===================================
 
     const existingAssignment =
       await TeacherAssignment.findOne({
-        academicSession: activeSession._id,
+        academicSession:
+          activeSession._id,
+
         className,
+
         section: normalizedSection,
+
         subject: subjectId,
       });
 
@@ -145,41 +172,82 @@ export async function createTeacherAssignment(data) {
     }
 
     // ===================================
+    // Check Existing Class Teacher
+    // ===================================
+
+    if (isClassTeacher) {
+      const existingClassTeacher =
+        await TeacherAssignment.findOne({
+          academicSession:
+            activeSession._id,
+
+          className,
+
+          section: normalizedSection,
+
+          isClassTeacher: true,
+        });
+
+      if (existingClassTeacher) {
+        return {
+          success: false,
+          message:
+            "A class teacher is already assigned to this class and section.",
+        };
+      }
+    }
+
+    // ===================================
     // Create Assignment
     // ===================================
 
     const assignment =
       await TeacherAssignment.create({
         teacher: teacherId,
-        academicSession: activeSession._id,
+
+        academicSession:
+          activeSession._id,
+
         className,
+
         section: normalizedSection,
+
         subject: subjectId,
+
+        isClassTeacher:
+          Boolean(isClassTeacher),
+
         status: true,
       });
 
-    revalidatePath("/admin/teacher-assignments");
+    revalidatePath(
+      "/admin/teacher-assignments"
+    );
+
+    revalidatePath("/teacher");
 
     return {
       success: true,
       message:
         "Teacher assigned successfully.",
+
       assignment: JSON.parse(
-        JSON.stringify(assignment),
+        JSON.stringify(assignment)
       ),
     };
   } catch (error) {
     console.error(
       "Create Teacher Assignment Error:",
-      error,
+      error
     );
 
-    // MongoDB unique index fallback
-    if (error?.code === 11000) {
+    const duplicateMessage =
+      getDuplicateErrorMessage(error);
+
+    if (duplicateMessage) {
       return {
         success: false,
-        message:
-          "This subject is already assigned for the selected class and section.",
+        message: duplicateMessage,
       };
     }
 
@@ -215,19 +283,20 @@ export async function getTeacherAssignments() {
 
     const assignments =
       await TeacherAssignment.find({
-        academicSession: activeSession._id,
+        academicSession:
+          activeSession._id,
       })
         .populate(
           "teacher",
-          "employeeId firstName lastName status",
+          "employeeId firstName lastName status"
         )
         .populate(
           "subject",
-          "subjectName subjectCode status",
+          "subjectName subjectCode status"
         )
         .populate(
           "academicSession",
-          "name startDate endDate isActive",
+          "name startDate endDate isActive"
         )
         .sort({
           className: 1,
@@ -237,14 +306,15 @@ export async function getTeacherAssignments() {
 
     return {
       success: true,
+
       assignments: JSON.parse(
-        JSON.stringify(assignments),
+        JSON.stringify(assignments)
       ),
     };
   } catch (error) {
     console.error(
       "Get Teacher Assignments Error:",
-      error,
+      error
     );
 
     return {
@@ -262,7 +332,7 @@ export async function getTeacherAssignments() {
 
 export async function updateTeacherAssignment(
   assignmentId,
-  data,
+  data
 ) {
   try {
     await connectDB();
@@ -270,7 +340,8 @@ export async function updateTeacherAssignment(
     if (!assignmentId) {
       return {
         success: false,
-        message: "Assignment ID is required.",
+        message:
+          "Assignment ID is required.",
       };
     }
 
@@ -279,6 +350,7 @@ export async function updateTeacherAssignment(
       className,
       section,
       subjectId,
+      isClassTeacher = false,
     } = data;
 
     if (
@@ -293,13 +365,17 @@ export async function updateTeacherAssignment(
       };
     }
 
+    const normalizedSection = section
+      .trim()
+      .toUpperCase();
+
     // ===================================
     // Find Assignment
     // ===================================
 
     const assignment =
       await TeacherAssignment.findById(
-        assignmentId,
+        assignmentId
       );
 
     if (!assignment) {
@@ -313,9 +389,8 @@ export async function updateTeacherAssignment(
     // Validate Teacher
     // ===================================
 
-    const teacher = await Teacher.findById(
-      teacherId,
-    );
+    const teacher =
+      await Teacher.findById(teacherId);
 
     if (!teacher) {
       return {
@@ -336,9 +411,8 @@ export async function updateTeacherAssignment(
     // Validate Subject
     // ===================================
 
-    const subject = await Subject.findById(
-      subjectId,
-    );
+    const subject =
+      await Subject.findById(subjectId);
 
     if (!subject) {
       return {
@@ -361,7 +435,7 @@ export async function updateTeacherAssignment(
 
     if (
       !subject.applicableClasses.includes(
-        className,
+        className
       )
     ) {
       return {
@@ -371,21 +445,21 @@ export async function updateTeacherAssignment(
       };
     }
 
-    const normalizedSection = section
-      .trim()
-      .toUpperCase();
-
     // ===================================
-    // Duplicate Check
+    // Check Duplicate Subject Assignment
     // ===================================
 
     const duplicateAssignment =
       await TeacherAssignment.findOne({
         academicSession:
           assignment.academicSession,
+
         className,
+
         section: normalizedSection,
+
         subject: subjectId,
+
         _id: {
           $ne: assignmentId,
         },
@@ -400,17 +474,60 @@ export async function updateTeacherAssignment(
     }
 
     // ===================================
+    // Check Existing Class Teacher
+    // ===================================
+
+    if (isClassTeacher) {
+      const existingClassTeacher =
+        await TeacherAssignment.findOne({
+          academicSession:
+            assignment.academicSession,
+
+          className,
+
+          section: normalizedSection,
+
+          isClassTeacher: true,
+
+          _id: {
+            $ne: assignmentId,
+          },
+        });
+
+      if (existingClassTeacher) {
+        return {
+          success: false,
+          message:
+            "A class teacher is already assigned to this class and section.",
+        };
+      }
+    }
+
+    // ===================================
     // Update Assignment
     // ===================================
 
     assignment.teacher = teacherId;
-    assignment.className = className;
-    assignment.section = normalizedSection;
-    assignment.subject = subjectId;
+
+    assignment.className =
+      className;
+
+    assignment.section =
+      normalizedSection;
+
+    assignment.subject =
+      subjectId;
+
+    assignment.isClassTeacher =
+      Boolean(isClassTeacher);
 
     await assignment.save();
 
-    revalidatePath("/admin/teacher-assignments");
+    revalidatePath(
+      "/admin/teacher-assignments"
+    );
+
+    revalidatePath("/teacher");
 
     return {
       success: true,
@@ -420,14 +537,16 @@ export async function updateTeacherAssignment(
   } catch (error) {
     console.error(
       "Update Teacher Assignment Error:",
-      error,
+      error
     );
 
-    if (error?.code === 11000) {
+    const duplicateMessage =
+      getDuplicateErrorMessage(error);
+
+    if (duplicateMessage) {
       return {
         success: false,
-        message:
-          "This subject is already assigned for the selected class and section.",
+        message: duplicateMessage,
       };
     }
 
@@ -444,7 +563,7 @@ export async function updateTeacherAssignment(
 // ===================================
 
 export async function deleteTeacherAssignment(
-  assignmentId,
+  assignmentId
 ) {
   try {
     await connectDB();
@@ -452,13 +571,14 @@ export async function deleteTeacherAssignment(
     if (!assignmentId) {
       return {
         success: false,
-        message: "Assignment ID is required.",
+        message:
+          "Assignment ID is required.",
       };
     }
 
     const assignment =
       await TeacherAssignment.findById(
-        assignmentId,
+        assignmentId
       );
 
     if (!assignment) {
@@ -469,10 +589,14 @@ export async function deleteTeacherAssignment(
     }
 
     await TeacherAssignment.findByIdAndDelete(
-      assignmentId,
+      assignmentId
     );
 
-    revalidatePath("/admin/teacher-assignments");
+    revalidatePath(
+      "/admin/teacher-assignments"
+    );
+
+    revalidatePath("/teacher");
 
     return {
       success: true,
@@ -482,7 +606,7 @@ export async function deleteTeacherAssignment(
   } catch (error) {
     console.error(
       "Delete Teacher Assignment Error:",
-      error,
+      error
     );
 
     return {
@@ -494,11 +618,11 @@ export async function deleteTeacherAssignment(
 }
 
 // ===================================
-// Get Current Teacher Assignments
+// Get Assignments By Teacher
 // ===================================
 
 export async function getAssignmentsByTeacher(
-  teacherId,
+  teacherId
 ) {
   try {
     await connectDB();
@@ -506,7 +630,8 @@ export async function getAssignmentsByTeacher(
     if (!teacherId) {
       return {
         success: false,
-        message: "Teacher ID is required.",
+        message:
+          "Teacher ID is required.",
         assignments: [],
       };
     }
@@ -528,16 +653,19 @@ export async function getAssignmentsByTeacher(
     const assignments =
       await TeacherAssignment.find({
         teacher: teacherId,
-        academicSession: activeSession._id,
+
+        academicSession:
+          activeSession._id,
+
         status: true,
       })
         .populate(
           "subject",
-          "subjectName subjectCode",
+          "subjectName subjectCode"
         )
         .populate(
           "academicSession",
-          "name startDate endDate",
+          "name startDate endDate"
         )
         .sort({
           className: 1,
@@ -547,14 +675,15 @@ export async function getAssignmentsByTeacher(
 
     return {
       success: true,
+
       assignments: JSON.parse(
-        JSON.stringify(assignments),
+        JSON.stringify(assignments)
       ),
     };
   } catch (error) {
     console.error(
       "Get Teacher Assignments Error:",
-      error,
+      error
     );
 
     return {
@@ -574,7 +703,12 @@ export async function getCurrentTeacherAssignments() {
   try {
     await connectDB();
 
-    const currentUser = await getCurrentUser();
+    // ===================================
+    // Current User
+    // ===================================
+
+    const currentUser =
+      await getCurrentUser();
 
     if (!currentUser) {
       return {
@@ -585,10 +719,13 @@ export async function getCurrentTeacherAssignments() {
       };
     }
 
-    if (currentUser.role !== "TEACHER") {
+    if (
+      currentUser.role !== "TEACHER"
+    ) {
       return {
         success: false,
-        message: "Teacher access required.",
+        message:
+          "Teacher access required.",
         assignments: [],
         session: null,
       };
@@ -597,35 +734,46 @@ export async function getCurrentTeacherAssignments() {
     if (!currentUser.teacherId) {
       return {
         success: false,
-        message: "Teacher profile is not linked to this account.",
+        message:
+          "Teacher profile is not linked to this account.",
         assignments: [],
         session: null,
       };
     }
 
-    // Active session
-    const activeSession = await AcademicSession.findOne({
-      isActive: true,
-    }).lean();
+    // ===================================
+    // Active Academic Session
+    // ===================================
+
+    const activeSession =
+      await AcademicSession.findOne({
+        isActive: true,
+      }).lean();
 
     if (!activeSession) {
       return {
         success: false,
-        message: "No active academic session found.",
+        message:
+          "No active academic session found.",
         assignments: [],
         session: null,
       };
     }
 
-    // Validate teacher
-    const teacher = await Teacher.findById(
-      currentUser.teacherId
-    ).lean();
+    // ===================================
+    // Validate Teacher
+    // ===================================
+
+    const teacher =
+      await Teacher.findById(
+        currentUser.teacherId
+      ).lean();
 
     if (!teacher) {
       return {
         success: false,
-        message: "Teacher profile not found.",
+        message:
+          "Teacher profile not found.",
         assignments: [],
         session: null,
       };
@@ -634,27 +782,36 @@ export async function getCurrentTeacherAssignments() {
     if (teacher.status !== "ACTIVE") {
       return {
         success: false,
-        message: "Teacher profile is inactive.",
+        message:
+          "Teacher profile is inactive.",
         assignments: [],
         session: null,
       };
     }
 
-    // Teacher assignments
-    const assignments = await TeacherAssignment.find({
-      teacher: currentUser.teacherId,
-      academicSession: activeSession._id,
-      status: true,
-    })
-      .populate(
-        "subject",
-        "subjectName subjectCode"
-      )
-      .sort({
-        className: 1,
-        section: 1,
+    // ===================================
+    // Teacher Assignments
+    // ===================================
+
+    const assignments =
+      await TeacherAssignment.find({
+        teacher:
+          currentUser.teacherId,
+
+        academicSession:
+          activeSession._id,
+
+        status: true,
       })
-      .lean();
+        .populate(
+          "subject",
+          "subjectName subjectCode"
+        )
+        .sort({
+          className: 1,
+          section: 1,
+        })
+        .lean();
 
     return {
       success: true,
@@ -679,7 +836,8 @@ export async function getCurrentTeacherAssignments() {
 
     return {
       success: false,
-      message: "Failed to load teacher assignments.",
+      message:
+        "Failed to load teacher assignments.",
       assignments: [],
       session: null,
     };
