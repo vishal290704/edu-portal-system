@@ -1,7 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Pencil, Trash2 } from "lucide-react";
+import {
+  useEffect,
+  useState,
+} from "react";
+
+import {
+  Pencil,
+  Trash2,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -19,25 +26,49 @@ import {
 
 import { CLASS_OPTIONS } from "@/constants/classes";
 
-const SECTION_OPTIONS = ["A", "B", "C", "D"];
+const SECTION_OPTIONS = [
+  "A",
+  "B",
+  "C",
+  "D",
+];
 
 export default function TeacherAssignments() {
-  const [teachers, setTeachers] = useState([]);
-  const [subjects, setSubjects] = useState([]);
-  const [assignments, setAssignments] = useState([]);
-  const [activeSession, setActiveSession] = useState(null);
+  const [teachers, setTeachers] =
+    useState([]);
 
-  const [editingId, setEditingId] = useState(null);
+  const [subjects, setSubjects] =
+    useState([]);
 
-  const [formData, setFormData] = useState({
-    teacherId: "",
-    className: "",
-    section: "A",
-    subjectId: "",
-  });
+  const [
+    assignments,
+    setAssignments,
+  ] = useState([]);
 
-  const [loading, setLoading] = useState(false);
-  const [pageLoading, setPageLoading] = useState(true);
+  const [
+    activeSession,
+    setActiveSession,
+  ] = useState(null);
+
+  const [editingId, setEditingId] =
+    useState(null);
+
+  const [formData, setFormData] =
+    useState({
+      teacherId: "",
+      className: "",
+      section: "A",
+      subjectId: "",
+      isClassTeacher: false,
+    });
+
+  const [loading, setLoading] =
+    useState(false);
+
+  const [
+    pageLoading,
+    setPageLoading,
+  ] = useState(true);
 
   // ===================================
   // Load Data
@@ -60,11 +91,13 @@ export default function TeacherAssignments() {
       ]);
 
       // Active Teachers
+
       if (teacherResult.success) {
         const activeTeachers =
           teacherResult.teachers.filter(
             (teacher) =>
-              teacher.status === "ACTIVE"
+              teacher.status ===
+              "ACTIVE"
           );
 
         setTeachers(activeTeachers);
@@ -73,6 +106,7 @@ export default function TeacherAssignments() {
       }
 
       // Active Subjects
+
       const activeSubjects =
         subjectData.filter(
           (subject) =>
@@ -82,6 +116,7 @@ export default function TeacherAssignments() {
       setSubjects(activeSubjects);
 
       // Assignments
+
       if (assignmentResult.success) {
         setAssignments(
           assignmentResult.assignments
@@ -90,7 +125,8 @@ export default function TeacherAssignments() {
         setAssignments([]);
       }
 
-      // Active Academic Session
+      // Active Session
+
       setActiveSession(sessionData);
     } catch (error) {
       console.error(
@@ -116,8 +152,10 @@ export default function TeacherAssignments() {
         return false;
       }
 
-      return subject.applicableClasses?.includes(
-        formData.className
+      return (
+        subject.applicableClasses?.includes(
+          formData.className
+        )
       );
     });
 
@@ -126,9 +164,15 @@ export default function TeacherAssignments() {
   // ===================================
 
   function handleChange(e) {
-    const { name, value } = e.target;
+    const {
+      name,
+      value,
+      type,
+      checked,
+    } = e.target;
 
-    // If class changes, reset subject
+    // Reset subject when class changes
+
     if (name === "className") {
       setFormData((prev) => ({
         ...prev,
@@ -141,7 +185,11 @@ export default function TeacherAssignments() {
 
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+
+      [name]:
+        type === "checkbox"
+          ? checked
+          : value,
     }));
   }
 
@@ -157,6 +205,7 @@ export default function TeacherAssignments() {
       className: "",
       section: "A",
       subjectId: "",
+      isClassTeacher: false,
     });
   }
 
@@ -171,6 +220,7 @@ export default function TeacherAssignments() {
       alert(
         "Please activate an academic session first."
       );
+
       return;
     }
 
@@ -196,6 +246,7 @@ export default function TeacherAssignments() {
 
       if (result.success) {
         resetForm();
+
         await loadData();
       }
     } catch (error) {
@@ -221,7 +272,8 @@ export default function TeacherAssignments() {
 
     setFormData({
       teacherId:
-        assignment.teacher?._id || "",
+        assignment.teacher?._id ||
+        "",
 
       className:
         assignment.className || "",
@@ -230,7 +282,12 @@ export default function TeacherAssignments() {
         assignment.section || "A",
 
       subjectId:
-        assignment.subject?._id || "",
+        assignment.subject?._id ||
+        "",
+
+      isClassTeacher:
+        assignment.isClassTeacher ||
+        false,
     });
 
     window.scrollTo({
@@ -264,7 +321,9 @@ export default function TeacherAssignments() {
       alert(result.message);
 
       if (result.success) {
-        if (editingId === assignmentId) {
+        if (
+          editingId === assignmentId
+        ) {
           resetForm();
         }
 
@@ -283,14 +342,15 @@ export default function TeacherAssignments() {
   }
 
   // ===================================
-  // Loading State
+  // Loading
   // ===================================
 
   if (pageLoading) {
     return (
       <div className="rounded-xl border bg-white p-6">
         <p className="text-sm text-slate-500">
-          Loading teacher assignments...
+          Loading teacher
+          assignments...
         </p>
       </div>
     );
@@ -298,9 +358,7 @@ export default function TeacherAssignments() {
 
   return (
     <div className="space-y-6">
-      {/* ===================================
-          Active Academic Session
-      =================================== */}
+      {/* Active Session */}
 
       <div className="rounded-xl border bg-white p-4">
         <p className="text-sm text-slate-500">
@@ -315,16 +373,14 @@ export default function TeacherAssignments() {
 
         {!activeSession && (
           <p className="mt-2 text-sm text-red-600">
-            Activate an academic session
-            before creating teacher
-            assignments.
+            Activate an academic
+            session before creating
+            teacher assignments.
           </p>
         )}
       </div>
 
-      {/* ===================================
-          Assignment Form
-      =================================== */}
+      {/* Assignment Form */}
 
       <form
         onSubmit={handleSubmit}
@@ -351,7 +407,9 @@ export default function TeacherAssignments() {
 
             <select
               name="teacherId"
-              value={formData.teacherId}
+              value={
+                formData.teacherId
+              }
               onChange={handleChange}
               required
               className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
@@ -360,17 +418,24 @@ export default function TeacherAssignments() {
                 Select Teacher
               </option>
 
-              {teachers.map((teacher) => (
-                <option
-                  key={teacher._id}
-                  value={teacher._id}
-                >
-                  {teacher.firstName}{" "}
-                  {teacher.lastName || ""}
-                  {" - "}
-                  {teacher.employeeId}
-                </option>
-              ))}
+              {teachers.map(
+                (teacher) => (
+                  <option
+                    key={teacher._id}
+                    value={teacher._id}
+                  >
+                    {
+                      teacher.firstName
+                    }{" "}
+                    {teacher.lastName ||
+                      ""}
+                    {" - "}
+                    {
+                      teacher.employeeId
+                    }
+                  </option>
+                )
+              )}
             </select>
           </div>
 
@@ -381,7 +446,9 @@ export default function TeacherAssignments() {
 
             <select
               name="className"
-              value={formData.className}
+              value={
+                formData.className
+              }
               onChange={handleChange}
               required
               className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
@@ -410,7 +477,9 @@ export default function TeacherAssignments() {
 
             <select
               name="section"
-              value={formData.section}
+              value={
+                formData.section
+              }
               onChange={handleChange}
               required
               className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
@@ -435,7 +504,9 @@ export default function TeacherAssignments() {
 
             <select
               name="subjectId"
-              value={formData.subjectId}
+              value={
+                formData.subjectId
+              }
               onChange={handleChange}
               required
               disabled={
@@ -455,8 +526,14 @@ export default function TeacherAssignments() {
                     key={subject._id}
                     value={subject._id}
                   >
-                    {subject.subjectName} (
-                    {subject.subjectCode})
+                    {
+                      subject.subjectName
+                    }{" "}
+                    (
+                    {
+                      subject.subjectCode
+                    }
+                    )
                   </option>
                 )
               )}
@@ -466,10 +543,44 @@ export default function TeacherAssignments() {
               filteredSubjects.length ===
                 0 && (
                 <p className="text-xs text-slate-500">
-                  No active subjects are
-                  available for this class.
+                  No active subjects
+                  are available for
+                  this class.
                 </p>
               )}
+          </div>
+        </div>
+
+        {/* Class Teacher */}
+
+        <div className="rounded-lg border bg-slate-50 p-4">
+          <div className="flex items-start gap-3">
+            <input
+              id="isClassTeacher"
+              name="isClassTeacher"
+              type="checkbox"
+              checked={
+                formData.isClassTeacher
+              }
+              onChange={handleChange}
+              className="mt-1 h-4 w-4"
+            />
+
+            <div>
+              <Label
+                htmlFor="isClassTeacher"
+                className="cursor-pointer font-medium"
+              >
+                Set as Class Teacher
+              </Label>
+
+              <p className="mt-1 text-sm text-slate-500">
+                Class teachers will
+                manage daily attendance
+                for this class and
+                section.
+              </p>
+            </div>
           </div>
         </div>
 
@@ -502,9 +613,7 @@ export default function TeacherAssignments() {
         </div>
       </form>
 
-      {/* ===================================
-          Assignment Table
-      =================================== */}
+      {/* Assignment Table */}
 
       <div className="overflow-hidden rounded-xl border bg-white">
         <div className="border-b px-6 py-4">
@@ -551,6 +660,10 @@ export default function TeacherAssignments() {
                     Subject
                   </th>
 
+                  <th className="px-6 py-3 font-medium">
+                    Role
+                  </th>
+
                   <th className="px-6 py-3 text-right font-medium">
                     Actions
                   </th>
@@ -566,8 +679,6 @@ export default function TeacherAssignments() {
                       }
                       className="border-b last:border-0"
                     >
-                      {/* Teacher */}
-
                       <td className="px-6 py-4 font-medium">
                         {assignment
                           .teacher
@@ -579,8 +690,6 @@ export default function TeacherAssignments() {
                           ""}
                       </td>
 
-                      {/* Employee ID */}
-
                       <td className="px-6 py-4 text-slate-600">
                         {assignment
                           .teacher
@@ -588,23 +697,17 @@ export default function TeacherAssignments() {
                           "-"}
                       </td>
 
-                      {/* Class */}
-
                       <td className="px-6 py-4">
                         {
                           assignment.className
                         }
                       </td>
 
-                      {/* Section */}
-
                       <td className="px-6 py-4">
                         {
                           assignment.section
                         }
                       </td>
-
-                      {/* Subject */}
 
                       <td className="px-6 py-4">
                         {assignment
@@ -613,7 +716,17 @@ export default function TeacherAssignments() {
                           "-"}
                       </td>
 
-                      {/* Actions */}
+                      <td className="px-6 py-4">
+                        {assignment.isClassTeacher ? (
+                          <span className="inline-flex rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
+                            Class Teacher
+                          </span>
+                        ) : (
+                          <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
+                            Subject Teacher
+                          </span>
+                        )}
+                      </td>
 
                       <td className="px-6 py-4">
                         <div className="flex justify-end gap-2">
