@@ -9,7 +9,7 @@ export default function TeacherResultsPage() {
         </h1>
 
         <p className="mt-1 text-muted-foreground">
-          Enter and update marks for your assigned classes and subjects.
+          Enter and manage examination marks for your class.
         </p>
       </div>
 

@@ -1,226 +1,133 @@
 "use client";
 
-import {
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-
+import { useEffect, useMemo, useState } from "react";
 import {
   BookOpen,
   CheckCircle2,
-  ClipboardList,
   GraduationCap,
   Save,
   Users,
 } from "lucide-react";
 
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
-
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 import {
-  getTeacherMarkAssignments,
-  getTeacherMarksData,
-  saveTeacherMarks,
+  getClassTeacherMarksSetup,
+  getClassTeacherMarksData,
+  saveClassTeacherMarks,
 } from "@/app/actions/markActions";
 
 // ===================================
-// Create Snapshot
+// Create Marks Key
 // ===================================
 
-function createSnapshot(
-  maximumMarks,
-  marks
-) {
+function getMarkKey(studentId, subjectId) {
+  return `${studentId}:${subjectId}`;
+}
+
+// ===================================
+// Create Saved Snapshot
+// ===================================
+
+function createSnapshot(maximumMarks, marks) {
   return JSON.stringify({
-    maximumMarks: String(
-      maximumMarks
-    ),
+    maximumMarks: String(maximumMarks),
 
-    marks: marks.map(
-      (mark) => ({
-        student: mark.student,
-
-        obtainedMarks:
-          String(
-            mark.obtainedMarks
-          ),
-
-        remarks:
-          mark.remarks || "",
-      })
-    ),
+    marks: marks.map((mark) => ({
+      student: mark.student,
+      subject: mark.subject,
+      obtainedMarks: String(mark.obtainedMarks),
+      remarks: mark.remarks || "",
+    })),
   });
 }
 
 export default function MarksManager() {
   // ===================================
-  // Basic Data
+  // Setup
   // ===================================
 
-  const [session, setSession] =
-    useState(null);
+  const [session, setSession] = useState(null);
+  const [classInfo, setClassInfo] = useState(null);
 
-  const [
-    assignments,
-    setAssignments,
-  ] = useState([]);
+  const [subjects, setSubjects] = useState([]);
+  const [exams, setExams] = useState([]);
 
-  const [exams, setExams] =
-    useState([]);
-
-  const [
-    selectedAssignment,
-    setSelectedAssignment,
-  ] = useState("");
-
-  const [
-    selectedExam,
-    setSelectedExam,
-  ] = useState("");
+  const [selectedExam, setSelectedExam] = useState("");
 
   // ===================================
-  // Marks Data
+  // Marks Sheet
   // ===================================
 
-  const [students, setStudents] =
-    useState([]);
+  const [students, setStudents] = useState([]);
+  const [marks, setMarks] = useState([]);
 
-  const [marks, setMarks] =
-    useState([]);
+  const [maximumMarks, setMaximumMarks] = useState("");
 
-  const [
-    maximumMarks,
-    setMaximumMarks,
-  ] = useState("");
-
-  const [
-    savedSnapshot,
-    setSavedSnapshot,
-  ] = useState("");
-
-  const [
-    hasExistingMarks,
-    setHasExistingMarks,
-  ] = useState(false);
+  const [savedSnapshot, setSavedSnapshot] = useState("");
+  const [hasExistingMarks, setHasExistingMarks] = useState(false);
 
   // ===================================
-  // UI State
+  // UI
   // ===================================
 
-  const [loading, setLoading] =
-    useState(true);
+  const [loading, setLoading] = useState(true);
+  const [loadingMarks, setLoadingMarks] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const [
-    loadingStudents,
-    setLoadingStudents,
-  ] = useState(false);
-
-  const [saving, setSaving] =
-    useState(false);
-
-  const [message, setMessage] =
-    useState("");
+  const [message, setMessage] = useState("");
+  const [success, setSuccess] = useState(false);
 
   // ===================================
-  // Load Teacher Assignments
+  // Initial Setup
   // ===================================
-
-  async function loadInitialData() {
-    try {
-      setLoading(true);
-      setMessage("");
-
-      const result =
-        await getTeacherMarkAssignments();
-
-      if (!result.success) {
-        setSession(null);
-        setAssignments([]);
-        setExams([]);
-
-        setMessage(
-          result.message ||
-            "Failed to load marks data."
-        );
-
-        return;
-      }
-
-      setSession(
-        result.session || null
-      );
-
-      setAssignments(
-        result.assignments || []
-      );
-
-      setExams(
-        result.exams || []
-      );
-    } catch (error) {
-      console.error(
-        "Load Teacher Marks Error:",
-        error
-      );
-
-      setMessage(
-        "Failed to load marks data."
-      );
-    } finally {
-      setLoading(false);
-    }
-  }
 
   useEffect(() => {
-    loadInitialData();
+    async function loadSetup() {
+      try {
+        setLoading(true);
+        setMessage("");
+        setSuccess(false);
+
+        const result = await getClassTeacherMarksSetup();
+
+        if (!result.success) {
+          setMessage(result.message || "Failed to load marks module.");
+          return;
+        }
+
+        setSession(result.session);
+        setClassInfo(result.classInfo);
+        setSubjects(result.subjects || []);
+        setExams(result.exams || []);
+      } catch (error) {
+        console.error("Load Marks Setup Error:", error);
+
+        setMessage("Failed to load marks module.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadSetup();
   }, []);
 
   // ===================================
-  // Current Assignment
+  // Selected Exam
   // ===================================
 
-  const assignment =
-    useMemo(() => {
-      return assignments.find(
-        (item) =>
-          item._id ===
-          selectedAssignment
-      );
-    }, [
-      assignments,
-      selectedAssignment,
-    ]);
+  const exam = useMemo(() => {
+    return exams.find((item) => item._id === selectedExam);
+  }, [exams, selectedExam]);
 
   // ===================================
-  // Applicable Exams
+  // Reset Sheet
   // ===================================
 
-  const applicableExams =
-    useMemo(() => {
-      if (!assignment) {
-        return [];
-      }
-
-      return exams.filter(
-        (exam) =>
-          exam.applicableClasses?.includes(
-            assignment.className
-          )
-      );
-    }, [exams, assignment]);
-
-  // ===================================
-  // Reset Marks Sheet
-  // ===================================
-
-  function resetMarksSheet() {
+  function resetSheet() {
     setStudents([]);
     setMarks([]);
     setMaximumMarks("");
@@ -229,37 +136,16 @@ export default function MarksManager() {
   }
 
   // ===================================
-  // Assignment Change
-  // ===================================
-
-  function handleAssignmentChange(
-    e
-  ) {
-    const value =
-      e.target.value;
-
-    setSelectedAssignment(value);
-
-    setSelectedExam("");
-
-    resetMarksSheet();
-
-    setMessage("");
-  }
-
-  // ===================================
   // Exam Change
   // ===================================
 
   function handleExamChange(e) {
-    const value =
-      e.target.value;
+    setSelectedExam(e.target.value);
 
-    setSelectedExam(value);
-
-    resetMarksSheet();
+    resetSheet();
 
     setMessage("");
+    setSuccess(false);
   }
 
   // ===================================
@@ -267,90 +153,80 @@ export default function MarksManager() {
   // ===================================
 
   useEffect(() => {
-    if (
-      !selectedAssignment ||
-      !selectedExam
-    ) {
+    if (!selectedExam) {
       return;
     }
 
-    async function loadMarksData() {
+    async function loadMarks() {
       try {
-        setLoadingStudents(true);
+        setLoadingMarks(true);
         setMessage("");
+        setSuccess(false);
 
-        const result =
-          await getTeacherMarksData({
-            assignmentId:
-              selectedAssignment,
-
-            examId:
-              selectedExam,
-          });
+        const result = await getClassTeacherMarksData({
+          examId: selectedExam,
+        });
 
         if (!result.success) {
-          resetMarksSheet();
+          resetSheet();
 
-          setMessage(
-            result.message ||
-              "Failed to load marks."
-          );
-
+          setMessage(result.message || "Failed to load marks.");
           return;
         }
 
-        const loadedStudents =
-          result.students || [];
+        const loadedStudents = result.students || [];
+        const loadedSubjects = result.subjects || [];
+        const existingMarks = result.marks || [];
 
-        const existingMarks =
-          result.marks || [];
+        setStudents(loadedStudents);
 
-        setStudents(
-          loadedStudents
-        );
+        // Use subjects returned by secure server lookup.
+        setSubjects(loadedSubjects);
 
         // ===================================
         // Existing Marks Map
         // ===================================
 
-        const existingMap =
-          new Map(
-            existingMarks.map(
-              (mark) => [
-                mark.student.toString(),
-                mark,
-              ]
-            )
+        const existingMap = new Map();
+
+        for (const mark of existingMarks) {
+          const studentId = mark.student?.toString();
+          const subjectId = mark.subject?.toString();
+
+          existingMap.set(
+            getMarkKey(studentId, subjectId),
+            mark
           );
+        }
 
-        const initialMarks =
-          loadedStudents.map(
-            (student) => {
-              const studentId =
-                student._id.toString();
+        // ===================================
+        // Build Complete Student × Subject Grid
+        // ===================================
 
-              const existing =
-                existingMap.get(
-                  studentId
-                );
+        const initialMarks = [];
 
-              return {
-                student:
-                  studentId,
+        for (const student of loadedStudents) {
+          for (const subject of loadedSubjects) {
+            const studentId = student._id.toString();
+            const subjectId = subject._id.toString();
 
-                obtainedMarks:
-                  existing
-                    ? String(
-                        existing.obtainedMarks
-                      )
-                    : "",
+            const existing = existingMap.get(
+              getMarkKey(studentId, subjectId)
+            );
 
-                remarks:
-                  existing?.remarks ||
-                  "",
-              };
-            }
-          );
+            initialMarks.push({
+              student: studentId,
+              subject: subjectId,
+
+              obtainedMarks:
+                existing?.obtainedMarks !== undefined
+                  ? String(existing.obtainedMarks)
+                  : "",
+
+              remarks: existing?.remarks || "",
+            });
+          }
+        }
 
         setMarks(initialMarks);
 
@@ -360,175 +236,116 @@ export default function MarksManager() {
 
         const existingMaximum =
           existingMarks.length > 0
-            ? String(
-                existingMarks[0]
-                  .maximumMarks
-              )
+            ? String(existingMarks[0].maximumMarks)
             : "";
 
-        setMaximumMarks(
-          existingMaximum
-        );
+        setMaximumMarks(existingMaximum);
 
-        const existing =
-          existingMarks.length > 0;
+        const hasExisting = existingMarks.length > 0;
 
-        setHasExistingMarks(
-          existing
-        );
+        setHasExistingMarks(hasExisting);
 
-        if (existing) {
+        if (hasExisting) {
           setSavedSnapshot(
-            createSnapshot(
-              existingMaximum,
-              initialMarks
-            )
+            createSnapshot(existingMaximum, initialMarks)
           );
         } else {
           setSavedSnapshot("");
         }
       } catch (error) {
-        console.error(
-          "Load Marks Data Error:",
-          error
-        );
+        console.error("Load Marks Error:", error);
 
-        resetMarksSheet();
+        resetSheet();
 
-        setMessage(
-          "Failed to load marks."
-        );
+        setMessage("Failed to load marks.");
       } finally {
-        setLoadingStudents(false);
+        setLoadingMarks(false);
       }
     }
 
-    loadMarksData();
-  }, [
-    selectedAssignment,
-    selectedExam,
-  ]);
+    loadMarks();
+  }, [selectedExam]);
 
   // ===================================
   // Marks Map
   // ===================================
 
-  const markMap =
-    useMemo(() => {
-      return new Map(
-        marks.map((mark) => [
-          mark.student,
-          mark,
-        ])
+  const marksMap = useMemo(() => {
+    const map = new Map();
+
+    for (const mark of marks) {
+      map.set(
+        getMarkKey(mark.student, mark.subject),
+        mark
       );
-    }, [marks]);
+    }
+
+    return map;
+  }, [marks]);
 
   // ===================================
-  // Entered Count
+  // Counts
   // ===================================
 
-  const enteredCount =
-    useMemo(() => {
-      return marks.filter(
-        (mark) =>
-          mark.obtainedMarks !== ""
-      ).length;
-    }, [marks]);
+  const totalCells = students.length * subjects.length;
+
+  const enteredCount = useMemo(() => {
+    return marks.filter(
+      (mark) => mark.obtainedMarks !== ""
+    ).length;
+  }, [marks]);
 
   // ===================================
-  // Unsaved Changes
+  // Detect Changes
   // ===================================
 
-  const hasChanges =
-    useMemo(() => {
-      if (
-        students.length === 0
-      ) {
-        return false;
-      }
+  const hasChanges = useMemo(() => {
+    if (!selectedExam || marks.length === 0) {
+      return false;
+    }
 
-      const hasAnyMarks =
-        marks.some(
-          (mark) =>
-            mark.obtainedMarks !== ""
-        );
+    const hasAnyMark = marks.some(
+      (mark) => mark.obtainedMarks !== ""
+    );
 
-      if (!hasAnyMarks) {
-        return false;
-      }
+    if (!hasAnyMark) {
+      return false;
+    }
 
-      if (
-        !hasExistingMarks
-      ) {
-        return true;
-      }
+    if (!hasExistingMarks) {
+      return true;
+    }
 
-      return (
-        createSnapshot(
-          maximumMarks,
-          marks
-        ) !== savedSnapshot
-      );
-    }, [
-      students,
-      marks,
-      maximumMarks,
-      savedSnapshot,
-      hasExistingMarks,
-    ]);
+    return (
+      createSnapshot(maximumMarks, marks) !== savedSnapshot
+    );
+  }, [
+    selectedExam,
+    maximumMarks,
+    marks,
+    savedSnapshot,
+    hasExistingMarks,
+  ]);
 
   // ===================================
-  // Update Student Mark
+  // Update Mark
   // ===================================
 
-  function updateMark(
-    studentId,
-    value
-  ) {
+  function updateMark(studentId, subjectId, value) {
     setMessage("");
+    setSuccess(false);
 
-    // Prevent negative values.
-
-    if (
-      value !== "" &&
-      Number(value) < 0
-    ) {
+    if (value !== "" && Number(value) < 0) {
       return;
     }
 
     setMarks((prev) =>
       prev.map((mark) =>
-        mark.student ===
-        studentId
+        mark.student === studentId &&
+        mark.subject === subjectId
           ? {
               ...mark,
-
-              obtainedMarks:
-                value,
-            }
-          : mark
-      )
-    );
-  }
-
-  // ===================================
-  // Update Remarks
-  // ===================================
-
-  function updateRemarks(
-    studentId,
-    value
-  ) {
-    setMessage("");
-
-    setMarks((prev) =>
-      prev.map((mark) =>
-        mark.student ===
-        studentId
-          ? {
-              ...mark,
-
-              remarks: value,
+              obtainedMarks: value,
             }
           : mark
       )
@@ -540,124 +357,102 @@ export default function MarksManager() {
   // ===================================
 
   async function handleSave() {
-    if (
-      saving ||
-      students.length === 0
-    ) {
+    if (saving) {
       return;
     }
 
-    const maxMarks =
-      Number(maximumMarks);
+    setMessage("");
+    setSuccess(false);
+
+    const maxMarks = Number(maximumMarks);
 
     if (
-      !maximumMarks ||
+      maximumMarks === "" ||
       Number.isNaN(maxMarks) ||
       maxMarks <= 0
     ) {
-      setMessage(
-        "Enter valid maximum marks."
-      );
-
+      setMessage("Enter valid maximum marks.");
       return;
     }
 
-    const invalidMark =
-      marks.find(
-        (mark) =>
-          mark.obtainedMarks !== "" &&
-          Number(
-            mark.obtainedMarks
-          ) > maxMarks
-      );
+    // ===================================
+    // Client Validation
+    // ===================================
 
-    if (invalidMark) {
-      setMessage(
-        `Obtained marks cannot exceed ${maxMarks}.`
-      );
+    for (const mark of marks) {
+      if (mark.obtainedMarks === "") {
+        continue;
+      }
 
-      return;
-    }
+      const obtained = Number(mark.obtainedMarks);
 
-    const hasAnyMarks =
-      marks.some(
-        (mark) =>
-          mark.obtainedMarks !== ""
-      );
+      if (Number.isNaN(obtained)) {
+        setMessage("Marks must be numeric.");
+        return;
+      }
 
-    if (!hasAnyMarks) {
-      setMessage(
-        "Enter marks for at least one student."
-      );
+      if (obtained < 0) {
+        setMessage("Marks cannot be negative.");
+        return;
+      }
 
-      return;
-    }
-
-    if (
-      hasExistingMarks &&
-      !hasChanges
-    ) {
-      setMessage(
-        "No changes to save."
-      );
-
-      return;
-    }
-
-    try {
-      setSaving(true);
-      setMessage("");
-
-      const result =
-        await saveTeacherMarks({
-          assignmentId:
-            selectedAssignment,
-
-          examId:
-            selectedExam,
-
-          maximumMarks:
-            maxMarks,
-
-          marks,
-        });
-
-      if (!result.success) {
+      if (obtained > maxMarks) {
         setMessage(
-          result.message ||
-            "Failed to save marks."
+          `Obtained marks cannot exceed ${maxMarks}.`
         );
 
         return;
       }
+    }
 
-      // ===================================
-      // No reload after save.
-      // Local state is already current.
-      // ===================================
+    const hasAnyMarks = marks.some(
+      (mark) => mark.obtainedMarks !== ""
+    );
 
+    if (!hasAnyMarks) {
+      setMessage("Enter marks for at least one student.");
+      return;
+    }
+
+    if (hasExistingMarks && !hasChanges) {
+      setMessage("No changes to save.");
+      return;
+    }
+
+    // ===================================
+    // Save
+    // ===================================
+
+    try {
+      setSaving(true);
+
+      const result = await saveClassTeacherMarks({
+        examId: selectedExam,
+        maximumMarks: maxMarks,
+        marks,
+      });
+
+      if (!result.success) {
+        setMessage(result.message || "Failed to save marks.");
+        return;
+      }
+
+      // No reload required.
       setHasExistingMarks(true);
 
       setSavedSnapshot(
-        createSnapshot(
-          maximumMarks,
-          marks
-        )
+        createSnapshot(maximumMarks, marks)
       );
 
+      setSuccess(true);
+
       setMessage(
-        result.message ||
-          "Marks saved successfully."
+        result.message || "Marks saved successfully."
       );
     } catch (error) {
-      console.error(
-        "Save Marks Error:",
-        error
-      );
+      console.error("Save Marks Error:", error);
 
-      setMessage(
-        "Failed to save marks."
-      );
+      setMessage("Failed to save marks.");
     } finally {
       setSaving(false);
     }
@@ -679,467 +474,405 @@ export default function MarksManager() {
     );
   }
 
+  // ===================================
+  // No Class Teacher Permission
+  // ===================================
+
+  if (!classInfo) {
+    return (
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center p-12 text-center">
+          <GraduationCap className="h-10 w-10 text-muted-foreground" />
+
+          <h2 className="mt-4 text-lg font-semibold">
+            Marks Entry Unavailable
+          </h2>
+
+          <p className="mt-2 max-w-md text-sm text-muted-foreground">
+            {message ||
+              "Only the class teacher can enter marks."}
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* ===================================
-          Selection
+          Class Information
+      =================================== */}
+
+      <section className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardContent className="flex items-center justify-between p-5">
+            <div>
+              <p className="text-sm text-muted-foreground">
+                Your Class
+              </p>
+
+              <p className="mt-1 text-xl font-bold">
+                Class {classInfo.className}-{classInfo.section}
+              </p>
+            </div>
+
+            <GraduationCap className="h-6 w-6 text-muted-foreground" />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="flex items-center justify-between p-5">
+            <div>
+              <p className="text-sm text-muted-foreground">
+                Academic Session
+              </p>
+
+              <p className="mt-1 text-xl font-bold">
+                {session?.name || "—"}
+              </p>
+            </div>
+
+            <BookOpen className="h-6 w-6 text-muted-foreground" />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="flex items-center justify-between p-5">
+            <div>
+              <p className="text-sm text-muted-foreground">
+                Subjects
+              </p>
+
+              <p className="mt-1 text-xl font-bold">
+                {subjects.length}
+              </p>
+            </div>
+
+            <Users className="h-6 w-6 text-muted-foreground" />
+          </CardContent>
+        </Card>
+      </section>
+
+      {/* ===================================
+          Exam Selection
       =================================== */}
 
       <Card>
         <CardContent className="p-6">
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold">
-              Select Class & Exam
-            </h2>
-
-            <p className="mt-1 text-sm text-muted-foreground">
-              Academic Session:{" "}
-              {session?.name || "—"}
-            </p>
-          </div>
-
           <div className="grid gap-5 md:grid-cols-2">
-            {/* Assignment */}
-
             <div className="space-y-2">
-              <Label>
-                Assigned Class & Subject
-              </Label>
+              <Label>Select Exam</Label>
 
               <select
-                value={
-                  selectedAssignment
-                }
-                onChange={
-                  handleAssignmentChange
-                }
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              >
-                <option value="">
-                  Select assignment
-                </option>
-
-                {assignments.map(
-                  (item) => (
-                    <option
-                      key={item._id}
-                      value={item._id}
-                    >
-                      Class{" "}
-                      {
-                        item.className
-                      }
-                      -
-                      {item.section} •{" "}
-                      {
-                        item.subject
-                          ?.subjectName
-                      }
-                    </option>
-                  )
-                )}
-              </select>
-            </div>
-
-            {/* Exam */}
-
-            <div className="space-y-2">
-              <Label>
-                Exam
-              </Label>
-
-              <select
-                value={
-                  selectedExam
-                }
-                onChange={
-                  handleExamChange
-                }
-                disabled={
-                  !selectedAssignment
-                }
+                value={selectedExam}
+                onChange={handleExamChange}
+                disabled={saving}
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <option value="">
                   Select exam
                 </option>
 
-                {applicableExams.map(
-                  (exam) => (
-                    <option
-                      key={exam._id}
-                      value={exam._id}
-                    >
-                      {
-                        exam.examName
-                      }{" "}
-                      (
-                      {
-                        exam.examType
-                      }
-                      )
-                    </option>
-                  )
-                )}
+                {exams.map((item) => (
+                  <option
+                    key={item._id}
+                    value={item._id}
+                  >
+                    {item.examName} ({item.examType})
+                  </option>
+                ))}
               </select>
+
+              {exams.length === 0 && (
+                <p className="text-sm text-muted-foreground">
+                  No active exams are available for your class.
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label>Maximum Marks</Label>
+
+              <Input
+                type="number"
+                min="1"
+                value={maximumMarks}
+                disabled={!selectedExam || saving}
+                onChange={(e) => {
+                  setMaximumMarks(e.target.value);
+                  setMessage("");
+                  setSuccess(false);
+                }}
+                placeholder="Example: 20"
+              />
             </div>
           </div>
-
-          {assignments.length ===
-            0 && (
-            <p className="mt-5 text-sm text-muted-foreground">
-              No active subject
-              assignments found for
-              this academic session.
-            </p>
-          )}
         </CardContent>
       </Card>
 
       {/* ===================================
-          Message Before Selection
+          Nothing Selected
       =================================== */}
 
-      {!selectedAssignment ||
-      !selectedExam ? (
+      {!selectedExam ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center p-12 text-center">
-            <ClipboardList className="h-10 w-10 text-muted-foreground" />
+            <BookOpen className="h-10 w-10 text-muted-foreground" />
 
             <h3 className="mt-4 font-semibold">
-              Select an assignment and
-              exam
+              Select an Exam
             </h3>
 
             <p className="mt-1 text-sm text-muted-foreground">
-              The student marks sheet
-              will appear here.
+              Select an exam to enter marks for your class.
             </p>
-
-            {message && (
-              <p className="mt-4 text-sm">
-                {message}
-              </p>
-            )}
           </CardContent>
         </Card>
-      ) : loadingStudents ? (
+      ) : loadingMarks ? (
         <Card>
           <CardContent className="p-8">
             <p className="text-sm text-muted-foreground">
-              Loading students and
-              marks...
+              Loading students and marks...
             </p>
           </CardContent>
         </Card>
       ) : (
         <>
           {/* ===================================
-              Summary
+              Marks Summary
           =================================== */}
 
           <section className="grid gap-4 sm:grid-cols-3">
             <Card>
-              <CardContent className="flex items-center justify-between p-5">
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    Students
-                  </p>
+              <CardContent className="p-5">
+                <p className="text-sm text-muted-foreground">
+                  Students
+                </p>
 
-                  <p className="mt-1 text-2xl font-bold">
-                    {
-                      students.length
-                    }
-                  </p>
-                </div>
-
-                <Users className="h-6 w-6 text-muted-foreground" />
+                <p className="mt-1 text-2xl font-bold">
+                  {students.length}
+                </p>
               </CardContent>
             </Card>
 
             <Card>
-              <CardContent className="flex items-center justify-between p-5">
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    Marks Entered
-                  </p>
+              <CardContent className="p-5">
+                <p className="text-sm text-muted-foreground">
+                  Marks Entered
+                </p>
 
-                  <p className="mt-1 text-2xl font-bold">
-                    {enteredCount}
-                  </p>
-                </div>
-
-                <CheckCircle2 className="h-6 w-6 text-green-600" />
+                <p className="mt-1 text-2xl font-bold">
+                  {enteredCount} / {totalCells}
+                </p>
               </CardContent>
             </Card>
 
             <Card>
-              <CardContent className="flex items-center justify-between p-5">
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    Subject
-                  </p>
+              <CardContent className="p-5">
+                <p className="text-sm text-muted-foreground">
+                  Exam
+                </p>
 
-                  <p className="mt-1 font-semibold">
-                    {assignment
-                      ?.subject
-                      ?.subjectName ||
-                      "—"}
-                  </p>
-                </div>
-
-                <BookOpen className="h-6 w-6 text-muted-foreground" />
+                <p className="mt-1 text-lg font-bold">
+                  {exam?.examName || "—"}
+                </p>
               </CardContent>
             </Card>
           </section>
 
           {/* ===================================
-              Marks Sheet
+              Marks Grid
           =================================== */}
 
-          <Card>
+          <Card className="overflow-hidden">
             <CardContent className="p-0">
-              {/* Header */}
+              <div className="border-b p-6">
+                <h2 className="text-xl font-semibold">
+                  Class {classInfo.className}-{classInfo.section} Marks
+                </h2>
 
-              <div className="flex flex-col gap-5 border-b p-6 lg:flex-row lg:items-end lg:justify-between">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <GraduationCap className="h-5 w-5" />
-
-                    <h2 className="text-xl font-semibold">
-                      Class{" "}
-                      {
-                        assignment
-                          ?.className
-                      }
-                      -
-                      {
-                        assignment
-                          ?.section
-                      }
-                    </h2>
-                  </div>
-
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    {
-                      assignment
-                        ?.subject
-                        ?.subjectName
-                    }
-                  </p>
-                </div>
-
-                <div className="w-full space-y-2 sm:w-52">
-                  <Label htmlFor="maximumMarks">
-                    Maximum Marks
-                  </Label>
-
-                  <Input
-                    id="maximumMarks"
-                    type="number"
-                    min="1"
-                    value={
-                      maximumMarks
-                    }
-                    disabled={saving}
-                    onChange={(e) => {
-                      setMaximumMarks(
-                        e.target.value
-                      );
-
-                      setMessage("");
-                    }}
-                    placeholder="Example: 100"
-                  />
-                </div>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Enter marks for all students and subjects.
+                </p>
               </div>
 
-              {/* Students */}
-
-              {students.length ===
-              0 ? (
+              {students.length === 0 ? (
                 <div className="p-10 text-center">
                   <Users className="mx-auto h-10 w-10 text-muted-foreground" />
 
                   <p className="mt-4 font-medium">
-                    No students found
+                    No active students found.
+                  </p>
+                </div>
+              ) : subjects.length === 0 ? (
+                <div className="p-10 text-center">
+                  <BookOpen className="mx-auto h-10 w-10 text-muted-foreground" />
+
+                  <p className="mt-4 font-medium">
+                    No subjects found for this class.
                   </p>
                 </div>
               ) : (
-                <div className="divide-y">
-                  {students.map(
-                    (
-                      student,
-                      index
-                    ) => {
-                      const studentId =
-                        student._id.toString();
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-max border-collapse">
+                    <thead>
+                      <tr className="border-b bg-muted/40">
+                        <th className="sticky left-0 z-20 min-w-[70px] bg-muted px-4 py-4 text-left text-sm font-semibold">
+                          Roll
+                        </th>
 
-                      const mark =
-                        markMap.get(
-                          studentId
+                        <th className="sticky left-[70px] z-20 min-w-[220px] bg-muted px-4 py-4 text-left text-sm font-semibold">
+                          Student
+                        </th>
+
+                        {subjects.map((subject) => (
+                          <th
+                            key={subject._id}
+                            className="min-w-[140px] px-4 py-4 text-center text-sm font-semibold"
+                          >
+                            <div>
+                              {subject.subjectName}
+                            </div>
+
+                            <div className="mt-1 text-xs font-normal text-muted-foreground">
+                              {subject.subjectCode}
+                            </div>
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      {students.map((student, index) => {
+                        const studentId =
+                          student._id.toString();
+
+                        return (
+                          <tr
+                            key={studentId}
+                            className="border-b last:border-b-0 hover:bg-muted/20"
+                          >
+                            <td className="sticky left-0 z-10 bg-background px-4 py-3 text-sm font-medium">
+                              {student.rollNo || index + 1}
+                            </td>
+
+                            <td className="sticky left-[70px] z-10 bg-background px-4 py-3">
+                              <p className="font-medium">
+                                {student.firstName}{" "}
+                                {student.lastName || ""}
+                              </p>
+
+                              <p className="text-xs text-muted-foreground">
+                                {student.admissionNo}
+                              </p>
+                            </td>
+
+                            {subjects.map((subject) => {
+                              const subjectId =
+                                subject._id.toString();
+
+                              const mark = marksMap.get(
+                                getMarkKey(
+                                  studentId,
+                                  subjectId
+                                )
+                              );
+
+                              return (
+                                <td
+                                  key={subjectId}
+                                  className="px-3 py-3"
+                                >
+                                  <Input
+                                    type="number"
+                                    min="0"
+                                    max={
+                                      maximumMarks ||
+                                      undefined
+                                    }
+                                    value={
+                                      mark?.obtainedMarks ??
+                                      ""
+                                    }
+                                    disabled={saving}
+                                    onChange={(e) =>
+                                      updateMark(
+                                        studentId,
+                                        subjectId,
+                                        e.target.value
+                                      )
+                                    }
+                                    className="mx-auto w-24 text-center"
+                                    placeholder="—"
+                                  />
+                                </td>
+                              );
+                            })}
+                          </tr>
                         );
-
-                      if (!mark) {
-                        return null;
-                      }
-
-                      return (
-                        <div
-                          key={
-                            studentId
-                          }
-                          className="grid gap-4 p-5 md:grid-cols-[minmax(0,1fr)_160px_minmax(180px,1fr)] md:items-center"
-                        >
-                          {/* Student */}
-
-                          <div className="flex items-center gap-4">
-                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-semibold">
-                              {student.rollNo ||
-                                index +
-                                  1}
-                            </div>
-
-                            <div className="min-w-0">
-                              <p className="font-semibold">
-                                {
-                                  student.firstName
-                                }{" "}
-                                {student.lastName ||
-                                  ""}
-                              </p>
-
-                              <p className="text-sm text-muted-foreground">
-                                Admission
-                                No:{" "}
-                                {
-                                  student.admissionNo
-                                }
-                              </p>
-                            </div>
-                          </div>
-
-                          {/* Marks */}
-
-                          <div className="space-y-2">
-                            <Label>
-                              Marks
-                            </Label>
-
-                            <Input
-                              type="number"
-                              min="0"
-                              max={
-                                maximumMarks ||
-                                undefined
-                              }
-                              value={
-                                mark.obtainedMarks
-                              }
-                              disabled={
-                                saving
-                              }
-                              onChange={(
-                                e
-                              ) =>
-                                updateMark(
-                                  studentId,
-                                  e.target
-                                    .value
-                                )
-                              }
-                              placeholder="Marks"
-                            />
-                          </div>
-
-                          {/* Remarks */}
-
-                          <div className="space-y-2">
-                            <Label>
-                              Remarks
-                            </Label>
-
-                            <Input
-                              value={
-                                mark.remarks
-                              }
-                              disabled={
-                                saving
-                              }
-                              onChange={(
-                                e
-                              ) =>
-                                updateRemarks(
-                                  studentId,
-                                  e.target
-                                    .value
-                                )
-                              }
-                              placeholder="Optional"
-                            />
-                          </div>
-                        </div>
-                      );
-                    }
-                  )}
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               )}
 
-              {/* Save */}
+              {/* ===================================
+                  Save Bar
+              =================================== */}
 
-              {students.length >
-                0 && (
-                <div className="flex flex-col gap-3 border-t bg-muted/20 p-6 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <p className="text-sm font-medium">
-                      {
-                        enteredCount
-                      }{" "}
-                      of{" "}
-                      {
-                        students.length
-                      }{" "}
-                      students entered
-                    </p>
+              {students.length > 0 &&
+                subjects.length > 0 && (
+                  <div className="flex flex-col gap-4 border-t bg-muted/20 p-6 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-sm font-medium">
+                        {enteredCount} of {totalCells} marks entered
+                      </p>
 
-                    {hasExistingMarks &&
-                      hasChanges && (
-                        <p className="mt-1 text-xs font-medium">
-                          Unsaved
-                          changes
+                      {hasExistingMarks &&
+                        hasChanges && (
+                          <p className="mt-1 text-xs text-amber-600">
+                            You have unsaved changes.
+                          </p>
+                        )}
+
+                      {message && (
+                        <p
+                          className={`mt-2 text-sm ${
+                            success
+                              ? "text-green-600"
+                              : "text-red-600"
+                          }`}
+                        >
+                          {message}
                         </p>
                       )}
+                    </div>
 
-                    {message && (
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {message}
-                      </p>
-                    )}
+                    <Button
+                      type="button"
+                      size="lg"
+                      onClick={handleSave}
+                      disabled={
+                        saving ||
+                        !hasChanges
+                      }
+                    >
+                      {success && !hasChanges ? (
+                        <CheckCircle2 className="mr-2 h-4 w-4" />
+                      ) : (
+                        <Save className="mr-2 h-4 w-4" />
+                      )}
+
+                      {saving
+                        ? "Saving..."
+                        : hasExistingMarks
+                          ? hasChanges
+                            ? "Update Marks"
+                            : "Marks Saved"
+                          : "Save Marks"}
+                    </Button>
                   </div>
-
-                  <Button
-                    type="button"
-                    size="lg"
-                    disabled={
-                      saving ||
-                      !hasChanges
-                    }
-                    onClick={
-                      handleSave
-                    }
-                  >
-                    <Save className="mr-2 h-4 w-4" />
-
-                    {saving
-                      ? "Saving..."
-                      : hasExistingMarks
-                        ? hasChanges
-                          ? "Update Marks"
-                          : "Marks Saved"
-                        : "Save Marks"}
-                  </Button>
-                </div>
-              )}
+                )}
             </CardContent>
           </Card>
         </>
