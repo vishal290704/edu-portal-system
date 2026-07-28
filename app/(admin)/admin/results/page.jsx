@@ -2,9 +2,9 @@
 
 import { useState, useCallback } from "react";
 
-import ResultFilters from "@/components/admin/results/ResultFilters";
-import StudentResultCard from "@/components/admin/results/StudentResultCard";
-import PrintableReportCard from "@/components/admin/results/PrintableReportCard";
+import ResultFilters from "@/components/results/ResultFilters";
+import StudentResultCard from "@/components/results/StudentResultCard";
+import PrintableReportCard from "@/components/results/PrintableReportCard";
 
 import { Button } from "@/components/ui/button";
 

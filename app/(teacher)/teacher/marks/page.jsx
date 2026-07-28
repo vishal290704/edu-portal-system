@@ -1,4 +1,4 @@
-import MarksManager from "@/components/teacher/MarksManager";
+import TeacherMarksManager from "@/components/teacher/TeacherMarksManager";
 
 export default function TeacherResultsPage() {
   return (
@@ -13,7 +13,7 @@ export default function TeacherResultsPage() {
         </p>
       </div>
 
-      <MarksManager />
+      <TeacherMarksManager />
     </div>
   );
 }
