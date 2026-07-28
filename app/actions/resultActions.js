@@ -6,6 +6,9 @@ import Mark from "@/models/Mark";
 import Student from "@/models/Student";
 import Exam from "@/models/Exam";
 import AcademicSession from "@/models/AcademicSession";
+import Teacher from "@/models/Teacher";
+import TeacherAssignment from "@/models/TeacherAssignment";
+import { getCurrentUser } from "@/lib/auth";
 
 import {
   calculatePercentage,
@@ -249,6 +252,138 @@ export async function getStudentResult({ academicSession, exam, student }) {
     return {
       success: false,
       message: "Failed to generate student result.",
+    };
+  }
+}
+
+// ===================================
+// Get Teacher Students
+// ===================================
+
+export async function getTeacherStudents() {
+  try {
+    await connectDB();
+
+    // ===================================
+    // Current User
+    // ===================================
+
+    const user = await getCurrentUser();
+
+    if (!user || user.role !== "TEACHER") {
+      return {
+        success: false,
+        message: "Unauthorized access.",
+      };
+    }
+
+    // ===================================
+    // Teacher
+    // ===================================
+
+    const teacher = await Teacher.findOne({
+      user: user.id,
+      status: true,
+    }).lean();
+
+    if (!teacher) {
+      return {
+        success: false,
+        message: "Teacher not found.",
+      };
+    }
+
+    // ===================================
+    // Active Session
+    // ===================================
+
+    const session = await AcademicSession.findOne({
+      isActive: true,
+    })
+      .select("_id name")
+      .lean();
+
+    if (!session) {
+      return {
+        success: false,
+        message: "No active academic session.",
+      };
+    }
+
+    // ===================================
+    // Class Teacher Assignment
+    // ===================================
+
+    const assignment = await TeacherAssignment.findOne({
+      teacher: teacher._id,
+      academicSession: session._id,
+      isClassTeacher: true,
+      status: true,
+    })
+      .select("className section")
+      .lean();
+
+    if (!assignment) {
+      return {
+        success: false,
+        message: "You are not assigned as a class teacher.",
+      };
+    }
+
+    // ===================================
+    // Students
+    // ===================================
+
+    // ===================================
+    // Students
+    // ===================================
+
+    const students = await Student.find({
+      className: assignment.className,
+      section: assignment.section,
+      status: true,
+    })
+      .select("_id admissionNo rollNo firstName lastName className section")
+      .sort({
+        rollNo: 1,
+      })
+      .lean();
+
+    if (students.length === 0) {
+      return {
+        success: false,
+        message: "No students found for your class.",
+      };
+    }
+
+    return {
+      success: true,
+
+      classInfo: {
+        className: assignment.className,
+        section: assignment.section,
+      },
+
+      academicSession: {
+        id: session._id.toString(),
+        name: session.name,
+      },
+
+      students: students.map((student) => ({
+        id: student._id.toString(),
+        admissionNo: student.admissionNo,
+        rollNo: student.rollNo,
+        firstName: student.firstName,
+        lastName: student.lastName,
+        fullName: `${student.firstName} ${student.lastName}`.trim(),
+      })),
+    };
+  } catch (error) {
+    console.error("Get Teacher Students Error:", error);
+
+    return {
+      success: false,
+      message: "Failed to load students.",
     };
   }
 }

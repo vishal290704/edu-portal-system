@@ -10,6 +10,7 @@ import {
   Settings,
   LogOut,
   GraduationCap,
+  PencilLine,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 
@@ -30,6 +31,11 @@ const menuItems = [
     icon: Users,
   },
   {
+    title: "Marks",
+    href: "/teacher/marks",
+    icon: PencilLine,
+  },
+  {
     title: "Results",
     href: "/teacher/results",
     icon: FileText,
@@ -46,29 +52,27 @@ const menuItems = [
   },
 ];
 
-
-
 export default function TeacherSidebar() {
   const pathname = usePathname();
   const router = useRouter();
 
-async function handleLogout() {
-  try {
-    const res = await fetch("/api/auth/logout", {
-      method: "POST",
-    });
+  async function handleLogout() {
+    try {
+      const res = await fetch("/api/auth/logout", {
+        method: "POST",
+      });
 
-    if (res.ok) {
-      router.replace("/login");
-      router.refresh();
-    } else {
-      alert("Logout failed.");
+      if (res.ok) {
+        router.replace("/login");
+        router.refresh();
+      } else {
+        alert("Logout failed.");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Something went wrong.");
     }
-  } catch (error) {
-    console.error(error);
-    alert("Something went wrong.");
   }
-}
 
   return (
     <aside className="hidden md:flex h-screen w-64 flex-col border-r bg-white">
