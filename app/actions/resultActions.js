@@ -387,3 +387,125 @@ export async function getTeacherStudents() {
     };
   }
 }
+
+
+// ===================================
+// Get Teacher Student Result
+// ===================================
+
+export async function getTeacherStudentResult({
+  academicSession,
+  exam,
+  student,
+}) {
+  try {
+    await connectDB();
+
+    // ===================================
+    // Current User
+    // ===================================
+
+    const user = await getCurrentUser();
+
+    if (!user || user.role !== "TEACHER") {
+      return {
+        success: false,
+        message: "Unauthorized access.",
+      };
+    }
+
+    // ===================================
+    // Teacher
+    // ===================================
+
+    const teacher = await Teacher.findOne({
+      user: user.id,
+      status: true,
+    })
+      .select("_id")
+      .lean();
+
+    if (!teacher) {
+      return {
+        success: false,
+        message: "Teacher not found.",
+      };
+    }
+
+    // ===================================
+    // Active Session
+    // ===================================
+
+    const session = await AcademicSession.findOne({
+      _id: academicSession,
+      isActive: true,
+    })
+      .select("_id")
+      .lean();
+
+    if (!session) {
+      return {
+        success: false,
+        message: "Academic session not found.",
+      };
+    }
+
+    // ===================================
+    // Class Teacher Assignment
+    // ===================================
+
+    const assignment = await TeacherAssignment.findOne({
+      teacher: teacher._id,
+      academicSession: session._id,
+      isClassTeacher: true,
+      status: true,
+    })
+      .select("className section")
+      .lean();
+
+    if (!assignment) {
+      return {
+        success: false,
+        message: "You are not assigned as a class teacher.",
+      };
+    }
+
+    // ===================================
+    // Verify Student
+    // ===================================
+
+    const studentDoc = await Student.findOne({
+      _id: student,
+      className: assignment.className,
+      section: assignment.section,
+      status: true,
+    })
+      .select("_id")
+      .lean();
+
+    if (!studentDoc) {
+      return {
+        success: false,
+        message: "This student does not belong to your class.",
+      };
+    }
+
+    // ===================================
+    // Get Result
+    // ===================================
+
+    return await getStudentResult({
+      academicSession,
+      exam,
+      student,
+    });
+
+  } catch (error) {
+    console.error("Get Teacher Student Result Error:", error);
+
+    return {
+      success: false,
+      message: "Failed to load student result.",
+    };
+  }
+}
