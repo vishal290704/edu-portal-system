@@ -62,6 +62,8 @@ export async function getStudentResult({ academicSession, exam, student }) {
       .select("name")
       .lean();
 
+
+
     if (!sessionDoc) {
       return {
         success: false,
@@ -75,6 +77,7 @@ export async function getStudentResult({ academicSession, exam, student }) {
 
     const examDoc = await Exam.findById(exam).select("examName").lean();
 
+
     if (!examDoc) {
       return {
         success: false,
@@ -85,7 +88,7 @@ export async function getStudentResult({ academicSession, exam, student }) {
     // ===================================
     // Get Student Marks
     // ===================================
-
+   
     const marks = await Mark.find({
       academicSession,
       exam,
@@ -107,7 +110,6 @@ export async function getStudentResult({ academicSession, exam, student }) {
 
     let totalObtained = 0;
     let totalMaximum = 0;
-
     const subjects = marks.map((mark) => {
       const obtained = Number(mark.obtainedMarks);
       const maximum = Number(mark.maximumMarks);
@@ -131,7 +133,6 @@ export async function getStudentResult({ academicSession, exam, student }) {
         remarks: calculateRemark(subjectResult.percentage),
       };
     });
-
     // ===================================
     // Overall Result
     // ===================================
@@ -179,7 +180,7 @@ export async function getStudentResult({ academicSession, exam, student }) {
 
       studentTotals[studentId].maximum += Number(mark.maximumMarks);
     }
-
+    
     const rankedStudents = Object.entries(studentTotals)
       .map(([studentId, totals]) => ({
         studentId,
@@ -197,7 +198,7 @@ export async function getStudentResult({ academicSession, exam, student }) {
     // ===================================
     // Return Result
     // ===================================
-
+    
     return {
       success: true,
 
@@ -270,6 +271,7 @@ export async function getTeacherStudents() {
 
     const user = await getCurrentUser();
 
+
     if (!user || user.role !== "TEACHER") {
       return {
         success: false,
@@ -281,15 +283,24 @@ export async function getTeacherStudents() {
     // Teacher
     // ===================================
 
-    const teacher = await Teacher.findOne({
-      user: user.id,
-      status: true,
-    }).lean();
+
+    const teacher = await Teacher.findById(user.teacherId)
+      .select("_id status")
+      .lean();
+
+
 
     if (!teacher) {
       return {
         success: false,
         message: "Teacher not found.",
+      };
+    }
+
+    if (teacher.status !== "ACTIVE") {
+      return {
+        success: false,
+        message: "Teacher account is inactive.",
       };
     }
 
@@ -338,16 +349,15 @@ export async function getTeacherStudents() {
     // Students
     // ===================================
 
+    
     const students = await Student.find({
       className: assignment.className,
       section: assignment.section,
-      status: true,
     })
-      .select("_id admissionNo rollNo firstName lastName className section")
-      .sort({
-        rollNo: 1,
-      })
+      .select("_id firstName lastName className section status")
       .lean();
+
+
 
     if (students.length === 0) {
       return {
@@ -388,7 +398,6 @@ export async function getTeacherStudents() {
   }
 }
 
-
 // ===================================
 // Get Teacher Student Result
 // ===================================
@@ -418,17 +427,21 @@ export async function getTeacherStudentResult({
     // Teacher
     // ===================================
 
-    const teacher = await Teacher.findOne({
-      user: user.id,
-      status: true,
-    })
-      .select("_id")
+    const teacher = await Teacher.findById(user.teacherId)
+      .select("_id status")
       .lean();
 
     if (!teacher) {
       return {
         success: false,
         message: "Teacher not found.",
+      };
+    }
+
+    if (teacher.status !== "ACTIVE") {
+      return {
+        success: false,
+        message: "Teacher account is inactive.",
       };
     }
 
@@ -478,7 +491,7 @@ export async function getTeacherStudentResult({
       _id: student,
       className: assignment.className,
       section: assignment.section,
-      status: true,
+      status: "Active",
     })
       .select("_id")
       .lean();
@@ -493,13 +506,14 @@ export async function getTeacherStudentResult({
     // ===================================
     // Get Result
     // ===================================
-
-    return await getStudentResult({
+    
+    const result = await getStudentResult({
       academicSession,
       exam,
       student,
     });
 
+    return result;
   } catch (error) {
     console.error("Get Teacher Student Result Error:", error);
 

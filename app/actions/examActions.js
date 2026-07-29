@@ -200,6 +200,10 @@ export async function deleteExam(id) {
 // Get Teacher Exams
 // ============================
 
+// ============================
+// Get Teacher Exams
+// ============================
+
 export async function getTeacherExams() {
   try {
     await connectDB();
@@ -210,7 +214,10 @@ export async function getTeacherExams() {
 
     const user = await getCurrentUser();
 
+    
     if (!user || user.role !== "TEACHER") {
+      console.log("❌ Unauthorized User");
+
       return {
         success: false,
         message: "Unauthorized access.",
@@ -221,17 +228,25 @@ export async function getTeacherExams() {
     // Teacher
     // ============================
 
-    const teacher = await Teacher.findOne({
-      user: user.id,
-      status: true,
-    })
-      .select("_id")
+
+
+    const teacher = await Teacher.findById(user.teacherId)
+      .select("_id firstName lastName status")
       .lean();
+
+
 
     if (!teacher) {
       return {
         success: false,
         message: "Teacher not found.",
+      };
+    }
+
+    if (teacher.status !== "ACTIVE") {
+      return {
+        success: false,
+        message: "Teacher account is inactive.",
       };
     }
 
@@ -246,6 +261,8 @@ export async function getTeacherExams() {
       .lean();
 
     if (!session) {
+      console.log("❌ No Active Session");
+
       return {
         success: false,
         message: "No active academic session.",
@@ -253,19 +270,22 @@ export async function getTeacherExams() {
     }
 
     // ============================
-    // Class Teacher Assignment
+    // Teacher Assignment
     // ============================
 
     const assignment = await TeacherAssignment.findOne({
       teacher: teacher._id,
       academicSession: session._id,
-      isClassTeacher: true,
+      // isClassTeacher: true,
       status: true,
     })
-      .select("className")
+      .select("className section")
       .lean();
 
+
     if (!assignment) {
+      console.log("❌ Assignment not found");
+
       return {
         success: false,
         message: "You are not assigned as a class teacher.",
@@ -282,15 +302,21 @@ export async function getTeacherExams() {
       status: true,
     })
       .select("_id examName examType startDate endDate")
-      .sort({ startDate: 1, createdAt: 1 })
+      .sort({
+        startDate: 1,
+        createdAt: 1,
+      })
       .lean();
 
     if (exams.length === 0) {
+      console.log("❌ No Exams Found");
+
       return {
         success: false,
         message: "No exams found for your class.",
       };
     }
+
     return {
       success: true,
 
@@ -308,7 +334,7 @@ export async function getTeacherExams() {
       })),
     };
   } catch (error) {
-    console.error("Get Teacher Exams Error:", error);
+    console.error("❌ Get Teacher Exams Error:", error);
 
     return {
       success: false,
