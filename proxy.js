@@ -39,7 +39,6 @@ export async function proxy(request) {
 
   // Verify token
   const payload = await verifyToken(token);
-  console.log("JWT Payload:", payload);
 
   if (!payload) {
     return NextResponse.redirect(new URL("/login", request.url));
