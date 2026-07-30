@@ -104,8 +104,16 @@ export async function getClassResults({
       return (a.rollNo || 0) - (b.rollNo || 0);
     });
 
+    let previousPercentage = null;
+    let currentRank = 0;
+
     students.forEach((student, index) => {
-      student.rank = index + 1;
+      if (student.percentage !== previousPercentage) {
+        currentRank = index + 1;
+        previousPercentage = student.percentage;
+      }
+
+      student.rank = currentRank;
     });
 
     const pass = students.filter((student) => student.result === "PASS").length;

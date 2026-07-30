@@ -125,3 +125,25 @@ export async function getStudentById(studentId) {
     return null;
   }
 }
+
+// ===================================
+// Sections By Class
+// ===================================
+
+export async function getSectionsByClass(className) {
+  try {
+    await connectDB();
+
+    const sections = await Student.distinct("section", {
+      className,
+      status: "Active",
+    });
+
+    return sections
+      .filter(Boolean)
+      .sort();
+  } catch (error) {
+    console.error("getSectionsByClass:", error);
+    return [];
+  }
+}
