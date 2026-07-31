@@ -6,6 +6,7 @@ import StudentDialog from "@/components/admin/students/StudentDialog";
 import {
   getStudents,
   deleteStudent,
+  activateStudentPortal,
 } from "@/app/actions/studentActions";
 import StudentTable from "@/components/admin/students/StudentTable";
 
@@ -34,26 +35,26 @@ export default function StudentsPage() {
     setOpen(true);
   };
 
-const handleDelete = async (student) => {
-  const confirmed = window.confirm(
-    `Are you sure you want to delete ${student.firstName} ${student.lastName}?`
-  );
+  const handleDelete = async (student) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to delete ${student.firstName} ${student.lastName}?`,
+    );
 
-  if (!confirmed) return;
+    if (!confirmed) return;
 
-  try {
-    const result = await deleteStudent(student._id);
+    try {
+      const result = await deleteStudent(student._id);
 
-    if (result.success) {
-      await loadStudents();
-    } else {
-      alert(result.message);
+      if (result.success) {
+        await loadStudents();
+      } else {
+        alert(result.message);
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Something went wrong.");
     }
-  } catch (error) {
-    console.error(error);
-    alert("Something went wrong.");
-  }
-};
+  };
 
   const filteredStudents = students.filter((student) => {
     const fullName =
@@ -64,6 +65,28 @@ const handleDelete = async (student) => {
       student.admissionNo.toLowerCase().includes(search.toLowerCase())
     );
   });
+
+  const handleActivatePortal = async (student) => {
+    const confirmed = window.confirm(
+      `Activate student portal for ${student.firstName} ${student.lastName}?`,
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const result = await activateStudentPortal(student._id);
+
+      if (result.success) {
+        alert(result.message);
+        await loadStudents();
+      } else {
+        alert(result.message);
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Something went wrong.");
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -108,6 +131,7 @@ const handleDelete = async (student) => {
         students={filteredStudents}
         onEdit={handleEdit}
         onDelete={handleDelete}
+        onActivatePortal={handleActivatePortal}
       />
 
       <StudentDialog

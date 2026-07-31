@@ -62,8 +62,6 @@ export async function getStudentResult({ academicSession, exam, student }) {
       .select("name")
       .lean();
 
-
-
     if (!sessionDoc) {
       return {
         success: false,
@@ -77,7 +75,6 @@ export async function getStudentResult({ academicSession, exam, student }) {
 
     const examDoc = await Exam.findById(exam).select("examName").lean();
 
-
     if (!examDoc) {
       return {
         success: false,
@@ -88,7 +85,7 @@ export async function getStudentResult({ academicSession, exam, student }) {
     // ===================================
     // Get Student Marks
     // ===================================
-   
+
     const marks = await Mark.find({
       academicSession,
       exam,
@@ -180,7 +177,7 @@ export async function getStudentResult({ academicSession, exam, student }) {
 
       studentTotals[studentId].maximum += Number(mark.maximumMarks);
     }
-    
+
     const rankedStudents = Object.entries(studentTotals)
       .map(([studentId, totals]) => ({
         studentId,
@@ -198,7 +195,7 @@ export async function getStudentResult({ academicSession, exam, student }) {
     // ===================================
     // Return Result
     // ===================================
-    
+
     return {
       success: true,
 
@@ -271,7 +268,6 @@ export async function getTeacherStudents() {
 
     const user = await getCurrentUser();
 
-
     if (!user || user.role !== "TEACHER") {
       return {
         success: false,
@@ -283,12 +279,9 @@ export async function getTeacherStudents() {
     // Teacher
     // ===================================
 
-
     const teacher = await Teacher.findById(user.teacherId)
       .select("_id status")
       .lean();
-
-
 
     if (!teacher) {
       return {
@@ -349,15 +342,14 @@ export async function getTeacherStudents() {
     // Students
     // ===================================
 
-    
     const students = await Student.find({
       className: assignment.className,
       section: assignment.section,
     })
-      .select("_id firstName lastName className section status")
+      .select(
+        "_id admissionNo rollNo firstName lastName className section status",
+      )
       .lean();
-
-
 
     if (students.length === 0) {
       return {
@@ -506,7 +498,7 @@ export async function getTeacherStudentResult({
     // ===================================
     // Get Result
     // ===================================
-    
+
     const result = await getStudentResult({
       academicSession,
       exam,
@@ -516,6 +508,88 @@ export async function getTeacherStudentResult({
     return result;
   } catch (error) {
     console.error("Get Teacher Student Result Error:", error);
+
+    return {
+      success: false,
+      message: "Failed to load student result.",
+    };
+  }
+}
+
+// ===================================
+// Get Current Student Result
+// ===================================
+
+export async function getCurrentStudentResult(exam) {
+  try {
+    await connectDB();
+
+    // ===================================
+    // Current User
+    // ===================================
+
+    const user = await getCurrentUser();
+
+    if (!user || user.role !== "STUDENT") {
+      return {
+        success: false,
+        message: "Unauthorized access.",
+      };
+    }
+
+    if (!user.studentId) {
+      return {
+        success: false,
+        message: "Student profile is not linked.",
+      };
+    }
+
+    // ===================================
+    // Active Academic Session
+    // ===================================
+
+    const session = await AcademicSession.findOne({
+      isActive: true,
+    })
+      .select("_id")
+      .lean();
+
+    if (!session) {
+      return {
+        success: false,
+        message: "No active academic session found.",
+      };
+    }
+
+    // ===================================
+    // Verify Student
+    // ===================================
+
+    const student = await Student.findOne({
+      _id: user.studentId,
+      status: "Active",
+    })
+      .select("_id")
+      .lean();
+
+    if (!student) {
+      return {
+        success: false,
+        message: "Student not found.",
+      };
+    }
+
+    // ===================================
+    // Get Result
+    // ===================================
+
+    return await getStudentResult({
+      academicSession: session._id,
+      exam,
+      student: student._id,
+    });
+  } catch (error) {
+    console.error("Get Current Student Result Error:", error);
 
     return {
       success: false,
