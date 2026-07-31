@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 
 import connectDB from "@/lib/mongodb";
+import bcrypt from "bcryptjs";
+import User from "@/models/User";
 
 import Student from "@/models/Student";
 import Teacher from "@/models/Teacher";
@@ -30,7 +32,7 @@ export async function createStudent(data) {
     if (error.code === 11000) {
       return {
         success: false,
-        message: "Admission Number already exists.",
+        message: "Student portal already exists.",
       };
     }
 
@@ -95,11 +97,29 @@ export async function getStudents() {
   try {
     await connectDB();
 
-    const students = await Student.find().sort({
-      createdAt: -1,
-    });
+    const students = await Student.find()
+      .sort({
+        createdAt: -1,
+      })
+      .lean();
 
-    return JSON.parse(JSON.stringify(students));
+    const users = await User.find(
+      {
+        role: "STUDENT",
+      },
+      "studentId",
+    ).lean();
+
+    const activatedStudents = new Set(
+      users.map((user) => user.studentId?.toString()),
+    );
+
+    const formattedStudents = students.map((student) => ({
+      ...student,
+      portalActivated: activatedStudents.has(student._id.toString()),
+    }));
+
+    return JSON.parse(JSON.stringify(formattedStudents));
   } catch (error) {
     console.error(error);
     return [];
@@ -154,9 +174,7 @@ export async function getCurrentTeacherStudents() {
     // Validate Teacher
     // ===================================
 
-    const teacher = await Teacher.findById(
-      currentUser.teacherId
-    ).lean();
+    const teacher = await Teacher.findById(currentUser.teacherId).lean();
 
     if (!teacher) {
       return {
@@ -182,10 +200,9 @@ export async function getCurrentTeacherStudents() {
     // Active Academic Session
     // ===================================
 
-    const activeSession =
-      await AcademicSession.findOne({
-        isActive: true,
-      }).lean();
+    const activeSession = await AcademicSession.findOne({
+      isActive: true,
+    }).lean();
 
     if (!activeSession) {
       return {
@@ -201,27 +218,19 @@ export async function getCurrentTeacherStudents() {
     // Teacher Assignments
     // ===================================
 
-    const assignments =
-      await TeacherAssignment.find({
-        teacher: currentUser.teacherId,
-        academicSession: activeSession._id,
-        status: true,
-      })
-        .populate(
-          "subject",
-          "subjectName subjectCode"
-        )
-        .lean();
+    const assignments = await TeacherAssignment.find({
+      teacher: currentUser.teacherId,
+      academicSession: activeSession._id,
+      status: true,
+    })
+      .populate("subject", "subjectName subjectCode")
+      .lean();
 
     if (assignments.length === 0) {
       return {
         success: true,
-        teacher: JSON.parse(
-          JSON.stringify(teacher)
-        ),
-        session: JSON.parse(
-          JSON.stringify(activeSession)
-        ),
+        teacher: JSON.parse(JSON.stringify(teacher)),
+        session: JSON.parse(JSON.stringify(activeSession)),
         assignments: [],
         students: [],
       };
@@ -234,8 +243,7 @@ export async function getCurrentTeacherStudents() {
     const classSectionMap = new Map();
 
     assignments.forEach((assignment) => {
-      const key =
-        `${assignment.className}-${assignment.section}`;
+      const key = `${assignment.className}-${assignment.section}`;
 
       if (!classSectionMap.has(key)) {
         classSectionMap.set(key, {
@@ -245,9 +253,7 @@ export async function getCurrentTeacherStudents() {
       }
     });
 
-    const classSections = Array.from(
-      classSectionMap.values()
-    );
+    const classSections = Array.from(classSectionMap.values());
 
     // ===================================
     // Get Accessible Students
@@ -272,27 +278,16 @@ export async function getCurrentTeacherStudents() {
     return {
       success: true,
 
-      teacher: JSON.parse(
-        JSON.stringify(teacher)
-      ),
+      teacher: JSON.parse(JSON.stringify(teacher)),
 
-      session: JSON.parse(
-        JSON.stringify(activeSession)
-      ),
+      session: JSON.parse(JSON.stringify(activeSession)),
 
-      assignments: JSON.parse(
-        JSON.stringify(assignments)
-      ),
+      assignments: JSON.parse(JSON.stringify(assignments)),
 
-      students: JSON.parse(
-        JSON.stringify(students)
-      ),
+      students: JSON.parse(JSON.stringify(students)),
     };
   } catch (error) {
-    console.error(
-      "Get Current Teacher Students Error:",
-      error
-    );
+    console.error("Get Current Teacher Students Error:", error);
 
     return {
       success: false,
@@ -300,6 +295,132 @@ export async function getCurrentTeacherStudents() {
       students: [],
       assignments: [],
       session: null,
+    };
+  }
+}
+
+// ===================================
+// Get Current Student
+// ===================================
+
+export async function getCurrentStudent() {
+  try {
+    await connectDB();
+
+    const currentUser = await getCurrentUser();
+
+    if (!currentUser) {
+      return {
+        success: false,
+        message: "Unauthorized.",
+        student: null,
+      };
+    }
+
+    if (currentUser.role !== "STUDENT") {
+      return {
+        success: false,
+        message: "Student access required.",
+        student: null,
+      };
+    }
+
+    if (!currentUser.studentId) {
+      return {
+        success: false,
+        message: "Student profile is not linked to this account.",
+        student: null,
+      };
+    }
+
+    const student = await Student.findById(currentUser.studentId).lean();
+
+    if (!student) {
+      return {
+        success: false,
+        message: "Student not found.",
+        student: null,
+      };
+    }
+
+    if (student.status !== "Active") {
+      return {
+        success: false,
+        message: "Student account is inactive.",
+        student: null,
+      };
+    }
+
+    return {
+      success: true,
+      student: JSON.parse(JSON.stringify(student)),
+    };
+  } catch (error) {
+    console.error("Get Current Student Error:", error);
+
+    return {
+      success: false,
+      message: "Failed to load student.",
+      student: null,
+    };
+  }
+}
+
+// ===================================
+// Activate Student Portal
+// ===================================
+
+export async function activateStudentPortal(studentId) {
+  try {
+    await connectDB();
+
+    const student = await Student.findById(studentId);
+
+    if (!student) {
+      return {
+        success: false,
+        message: "Student not found.",
+      };
+    }
+
+    // Check if portal is already activated
+    const existingUser = await User.findOne({
+      studentId,
+      role: "STUDENT",
+    });
+
+    if (existingUser) {
+      return {
+        success: false,
+        message: "Student portal is already activated.",
+      };
+    }
+
+    // Random password (students won't use it)
+    const randomPassword = Date.now().toString() + Math.random().toString(36);
+
+    const hashedPassword = await bcrypt.hash(randomPassword, 10);
+
+    await User.create({
+      username: student.admissionNo,
+      password: hashedPassword,
+      role: "STUDENT",
+      studentId: student._id,
+      mustChangePassword: false,
+      isActive: true,
+    });
+    revalidatePath("/admin/students");
+
+    return {
+      success: true,
+      message: "Student portal activated successfully.",
+    };
+  } catch (error) {
+    console.error("Activate Student Portal Error:", error);
+
+    return {
+      success: false,
+      message: "Something went wrong.",
     };
   }
 }

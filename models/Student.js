@@ -31,7 +31,10 @@ const studentSchema = new mongoose.Schema(
       required: true,
     },
 
-    dob: Date,
+    dob: {
+      type: Date,
+      required: true,
+    },
 
     className: {
       type: String,
@@ -72,7 +75,7 @@ const studentSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 export default mongoose.models.Student ||
