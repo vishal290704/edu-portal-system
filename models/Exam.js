@@ -14,6 +14,12 @@ const examSchema = new mongoose.Schema(
       trim: true,
     },
 
+    resultMode: {
+      type: String,
+      enum: ["INDIVIDUAL", "CUMULATIVE"],
+      default: "INDIVIDUAL",
+    },
+
     academicSession: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "AcademicSession",
@@ -27,6 +33,20 @@ const examSchema = new mongoose.Schema(
         validator: (value) => value.length > 0,
         message: "Select at least one class.",
       },
+    },
+
+    includedExams: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Exam",
+      },
+    ],
+
+    // Maximum marks for each subject in this exam
+    maximumMarksPerSubject: {
+      type: Number,
+      required: true,
+      min: 1,
     },
 
     startDate: {

@@ -54,8 +54,11 @@ export async function createExam(data) {
     const exam = await Exam.create({
       examName,
       examType,
+      resultMode: data.resultMode || "INDIVIDUAL",
       academicSession: data.academicSession,
       applicableClasses: data.applicableClasses,
+      includedExams: data.includedExams || [],
+      maximumMarksPerSubject: Number(data.maximumMarksPerSubject),
       startDate: data.startDate || null,
       endDate: data.endDate || null,
       status: data.status ?? true,
@@ -88,6 +91,7 @@ export async function getExams() {
 
     const exams = await Exam.find()
       .populate("academicSession", "name")
+      .populate("includedExams", "examName")
       .sort({ createdAt: -1 })
       .lean();
 
@@ -146,8 +150,11 @@ export async function updateExam(id, data) {
       {
         examName,
         examType,
+        resultMode: data.resultMode || "INDIVIDUAL",
         academicSession: data.academicSession,
         applicableClasses: data.applicableClasses,
+        includedExams: data.includedExams || [],
+        maximumMarksPerSubject: Number(data.maximumMarksPerSubject),
         startDate: data.startDate || null,
         endDate: data.endDate || null,
         status: data.status,
@@ -214,7 +221,6 @@ export async function getTeacherExams() {
 
     const user = await getCurrentUser();
 
-    
     if (!user || user.role !== "TEACHER") {
       console.log("❌ Unauthorized User");
 
@@ -228,13 +234,9 @@ export async function getTeacherExams() {
     // Teacher
     // ============================
 
-
-
     const teacher = await Teacher.findById(user.teacherId)
       .select("_id firstName lastName status")
       .lean();
-
-
 
     if (!teacher) {
       return {
@@ -281,7 +283,6 @@ export async function getTeacherExams() {
     })
       .select("className section")
       .lean();
-
 
     if (!assignment) {
       console.log("❌ Assignment not found");

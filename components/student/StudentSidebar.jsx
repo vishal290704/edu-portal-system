@@ -27,11 +27,6 @@ const menuItems = [
     icon: GraduationCap,
   },
   {
-    title: "Report Card",
-    href: "/student/report-card",
-    icon: FileText,
-  },
-  {
     title: "Settings",
     href: "/student/settings",
     icon: Settings,

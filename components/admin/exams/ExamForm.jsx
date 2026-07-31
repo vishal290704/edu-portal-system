@@ -27,35 +27,35 @@ export default function ExamForm({ initialData = {}, onSuccess, onCancel }) {
       examType: data.examType || "",
       academicSession: data.academicSession?._id || "",
       applicableClasses: data.applicableClasses || [],
+      maximumMarksPerSubject: data.maximumMarksPerSubject ?? "",
       startDate: data.startDate ? data.startDate.slice(0, 10) : "",
       endDate: data.endDate ? data.endDate.slice(0, 10) : "",
       status: data.status ?? true,
     };
   }
-
   useEffect(() => {
     setFormData(getFormData());
   }, [initialData]);
 
   useEffect(() => {
-  async function loadActiveSession() {
-    const session = await getActiveAcademicSession();
+    async function loadActiveSession() {
+      const session = await getActiveAcademicSession();
 
-    if (!session) return;
+      if (!session) return;
 
-    setActiveSession(session);
+      setActiveSession(session);
 
-    // Only auto-set the session when creating a new exam
-    if (!initialData?._id) {
-      setFormData((prev) => ({
-        ...prev,
-        academicSession: session._id,
-      }));
+      // Only auto-set the session when creating a new exam
+      if (!initialData?._id) {
+        setFormData((prev) => ({
+          ...prev,
+          academicSession: session._id,
+        }));
+      }
     }
-  }
 
-  loadActiveSession();
-}, [initialData]);
+    loadActiveSession();
+  }, [initialData]);
 
   function handleChange(e) {
     const { name, value, type, checked } = e.target;
@@ -138,6 +138,25 @@ export default function ExamForm({ initialData = {}, onSuccess, onCancel }) {
             </option>
           ))}
         </select>
+      </div>
+
+      <div className="space-y-2">
+        <Label>Maximum Marks Per Subject</Label>
+
+        <Input
+          type="number"
+          name="maximumMarksPerSubject"
+          min={1}
+          step={1}
+          placeholder="25"
+          value={formData.maximumMarksPerSubject}
+          onChange={handleChange}
+          required
+        />
+
+        <p className="text-xs text-muted-foreground">
+          Example: Unit Test = 25, Half Yearly = 50, Annual = 50
+        </p>
       </div>
 
       <div className="space-y-2">
