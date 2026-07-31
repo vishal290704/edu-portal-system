@@ -5,8 +5,8 @@ import { revalidatePath } from "next/cache";
 import connectDB from "@/lib/mongodb";
 import bcrypt from "bcryptjs";
 import User from "@/models/User";
-
 import Student from "@/models/Student";
+
 import Teacher from "@/models/Teacher";
 import TeacherAssignment from "@/models/TeacherAssignment";
 import AcademicSession from "@/models/AcademicSession";
@@ -423,4 +423,22 @@ export async function activateStudentPortal(studentId) {
       message: "Something went wrong.",
     };
   }
+}
+
+export async function getCurrentStudentProfile() {
+  await connectDB();
+
+  const user = await getCurrentUser();
+
+  if (!user || user.role !== "STUDENT") {
+    throw new Error("Unauthorized");
+  }
+
+  const student = await Student.findById(user.studentId).lean();
+
+  if (!student) {
+    throw new Error("Student not found");
+  }
+
+  return JSON.parse(JSON.stringify(student));
 }
