@@ -147,3 +147,22 @@ export async function getSectionsByClass(className) {
     return [];
   }
 }
+
+// ===================================
+// Get Exam By ID
+// ===================================
+
+export async function getExamById(examId) {
+  try {
+    await connectDB();
+
+    const exam = await Exam.findById(examId)
+      .select("examName maximumMarksPerSubject")
+      .lean();
+
+    return JSON.parse(JSON.stringify(exam));
+  } catch (error) {
+    console.error("getExamById:", error);
+    return null;
+  }
+}

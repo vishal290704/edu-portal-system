@@ -2,7 +2,10 @@
 
 import { useEffect, useState } from "react";
 
-import { getSubjectsByClass } from "@/app/actions/markHelperActions";
+import {
+  getSubjectsByClass,
+  getExamById,
+} from "@/app/actions/markHelperActions";
 
 import { getStudentMarks, saveStudentMarks } from "@/app/actions/markActions";
 
@@ -32,6 +35,13 @@ export default function StudentMarksForm({ filters }) {
 
       try {
         const subjectList = await getSubjectsByClass(filters.className);
+        const exam = await getExamById(filters.exam);
+
+        if (!exam) {
+          setSubjects([]);
+          setMarks([]);
+          return;
+        }
 
         const existingMarks = await getStudentMarks({
           academicSession: filters.academicSession,
@@ -48,7 +58,7 @@ export default function StudentMarksForm({ filters }) {
             subject: subject._id,
             subjectName: subject.subjectName,
             subjectCode: subject.subjectCode,
-            maximumMarks: subject.maximumMarks || 100,
+            maximumMarks: exam.maximumMarksPerSubject,
             obtainedMarks: existing?.obtainedMarks ?? "",
             remarks: existing?.remarks ?? "",
           };

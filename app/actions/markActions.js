@@ -40,10 +40,7 @@ export async function createMark(data) {
     const obtained = Number(obtainedMarks);
     const maximum = Number(maximumMarks);
 
-    if (
-      Number.isNaN(obtained) ||
-      Number.isNaN(maximum)
-    ) {
+    if (Number.isNaN(obtained) || Number.isNaN(maximum)) {
       return {
         success: false,
         message: "Marks must be numeric.",
@@ -67,17 +64,15 @@ export async function createMark(data) {
     if (obtained > maximum) {
       return {
         success: false,
-        message:
-          "Obtained marks cannot exceed maximum marks.",
+        message: "Obtained marks cannot exceed maximum marks.",
       };
     }
 
-    const [examDoc, studentDoc, subjectDoc] =
-      await Promise.all([
-        Exam.findById(exam),
-        Student.findById(student),
-        Subject.findById(subject),
-      ]);
+    const [examDoc, studentDoc, subjectDoc] = await Promise.all([
+      Exam.findById(exam),
+      Student.findById(student),
+      Subject.findById(subject),
+    ]);
 
     if (!examDoc) {
       return {
@@ -100,38 +95,24 @@ export async function createMark(data) {
       };
     }
 
-    if (
-      examDoc.academicSession.toString() !==
-      academicSession.toString()
-    ) {
+    if (examDoc.academicSession.toString() !== academicSession.toString()) {
       return {
         success: false,
-        message:
-          "Exam does not belong to the selected academic session.",
+        message: "Exam does not belong to the selected academic session.",
       };
     }
 
-    if (
-      !examDoc.applicableClasses.includes(
-        studentDoc.className
-      )
-    ) {
+    if (!examDoc.applicableClasses.includes(studentDoc.className)) {
       return {
         success: false,
-        message:
-          "Student's class is not applicable for this exam.",
+        message: "Student's class is not applicable for this exam.",
       };
     }
 
-    if (
-      !subjectDoc.applicableClasses.includes(
-        studentDoc.className
-      )
-    ) {
+    if (!subjectDoc.applicableClasses.includes(studentDoc.className)) {
       return {
         success: false,
-        message:
-          "Subject is not applicable for this student's class.",
+        message: "Subject is not applicable for this student's class.",
       };
     }
 
@@ -145,8 +126,7 @@ export async function createMark(data) {
     if (existing) {
       return {
         success: false,
-        message:
-          "Marks already exist for this student and subject.",
+        message: "Marks already exist for this student and subject.",
       };
     }
 
@@ -173,21 +153,15 @@ export async function createMark(data) {
       success: true,
       message: "Marks saved successfully.",
 
-      mark: JSON.parse(
-        JSON.stringify(mark)
-      ),
+      mark: JSON.parse(JSON.stringify(mark)),
     };
   } catch (error) {
-    console.error(
-      "Create Mark Error:",
-      error
-    );
+    console.error("Create Mark Error:", error);
 
     if (error?.code === 11000) {
       return {
         success: false,
-        message:
-          "Marks already exist for this student and subject.",
+        message: "Marks already exist for this student and subject.",
       };
     }
 
@@ -209,33 +183,19 @@ export async function getMarks() {
     const marks = await Mark.find()
       .populate(
         "student",
-        "firstName lastName admissionNo className section rollNo"
+        "firstName lastName admissionNo className section rollNo",
       )
-      .populate(
-        "subject",
-        "subjectName subjectCode"
-      )
-      .populate(
-        "exam",
-        "examName examType"
-      )
-      .populate(
-        "academicSession",
-        "name"
-      )
+      .populate("subject", "subjectName subjectCode")
+      .populate("exam", "examName examType")
+      .populate("academicSession", "name")
       .sort({
         createdAt: -1,
       })
       .lean();
 
-    return JSON.parse(
-      JSON.stringify(marks)
-    );
+    return JSON.parse(JSON.stringify(marks));
   } catch (error) {
-    console.error(
-      "Get Marks Error:",
-      error
-    );
+    console.error("Get Marks Error:", error);
 
     return [];
   }
@@ -245,23 +205,15 @@ export async function getMarks() {
 // Update Mark
 // ============================
 
-export async function updateMark(
-  id,
-  data
-) {
+export async function updateMark(id, data) {
   try {
     await connectDB();
 
-    const obtained =
-      Number(data.obtainedMarks);
+    const obtained = Number(data.obtainedMarks);
 
-    const maximum =
-      Number(data.maximumMarks);
+    const maximum = Number(data.maximumMarks);
 
-    if (
-      Number.isNaN(obtained) ||
-      Number.isNaN(maximum)
-    ) {
+    if (Number.isNaN(obtained) || Number.isNaN(maximum)) {
       return {
         success: false,
         message: "Marks must be numeric.",
@@ -271,42 +223,37 @@ export async function updateMark(
     if (obtained < 0) {
       return {
         success: false,
-        message:
-          "Obtained marks cannot be negative.",
+        message: "Obtained marks cannot be negative.",
       };
     }
 
     if (maximum <= 0) {
       return {
         success: false,
-        message:
-          "Maximum marks must be greater than zero.",
+        message: "Maximum marks must be greater than zero.",
       };
     }
 
     if (obtained > maximum) {
       return {
         success: false,
-        message:
-          "Obtained marks cannot exceed maximum marks.",
+        message: "Obtained marks cannot exceed maximum marks.",
       };
     }
 
-    const updated =
-      await Mark.findByIdAndUpdate(
-        id,
-        {
-          ...data,
-          obtainedMarks: obtained,
-          maximumMarks: maximum,
-          remarks:
-            data.remarks?.trim() || "",
-        },
-        {
-          new: true,
-          runValidators: true,
-        }
-      );
+    const updated = await Mark.findByIdAndUpdate(
+      id,
+      {
+        ...data,
+        obtainedMarks: obtained,
+        maximumMarks: maximum,
+        remarks: data.remarks?.trim() || "",
+      },
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
 
     if (!updated) {
       return {
@@ -320,14 +267,10 @@ export async function updateMark(
 
     return {
       success: true,
-      message:
-        "Marks updated successfully.",
+      message: "Marks updated successfully.",
     };
   } catch (error) {
-    console.error(
-      "Update Mark Error:",
-      error
-    );
+    console.error("Update Mark Error:", error);
 
     return {
       success: false,
@@ -344,8 +287,7 @@ export async function deleteMark(id) {
   try {
     await connectDB();
 
-    const deleted =
-      await Mark.findByIdAndDelete(id);
+    const deleted = await Mark.findByIdAndDelete(id);
 
     if (!deleted) {
       return {
@@ -359,14 +301,10 @@ export async function deleteMark(id) {
 
     return {
       success: true,
-      message:
-        "Marks deleted successfully.",
+      message: "Marks deleted successfully.",
     };
   } catch (error) {
-    console.error(
-      "Delete Mark Error:",
-      error
-    );
+    console.error("Delete Mark Error:", error);
 
     return {
       success: false,
@@ -379,11 +317,7 @@ export async function deleteMark(id) {
 // Get Student Marks
 // ============================
 
-export async function getStudentMarks({
-  academicSession,
-  exam,
-  student,
-}) {
+export async function getStudentMarks({ academicSession, exam, student }) {
   try {
     await connectDB();
 
@@ -392,23 +326,15 @@ export async function getStudentMarks({
       exam,
       student,
     })
-      .populate(
-        "subject",
-        "_id subjectName subjectCode"
-      )
+      .populate("subject", "_id subjectName subjectCode")
       .sort({
         createdAt: 1,
       })
       .lean();
 
-    return JSON.parse(
-      JSON.stringify(marks)
-    );
+    return JSON.parse(JSON.stringify(marks));
   } catch (error) {
-    console.error(
-      "Get Student Marks Error:",
-      error
-    );
+    console.error("Get Student Marks Error:", error);
 
     return [];
   }
@@ -428,45 +354,32 @@ export async function saveStudentMarks({
   try {
     await connectDB();
 
-    if (
-      !academicSession ||
-      !exam ||
-      !student
-    ) {
+    if (!academicSession || !exam || !student) {
       return {
         success: false,
-        message:
-          "Please select session, exam and student.",
+        message: "Please select session, exam and student.",
       };
     }
 
-    if (
-      !Array.isArray(marks) ||
-      marks.length === 0
-    ) {
+    if (!Array.isArray(marks) || marks.length === 0) {
       return {
         success: false,
         message: "No marks to save.",
       };
     }
 
-    const [studentDoc, examDoc] =
-      await Promise.all([
-        Student.findById(student)
-          .select(
-            "className section rollNo admissionNo"
-          )
-          .lean(),
+    const [studentDoc, examDoc] = await Promise.all([
+      Student.findById(student)
+        .select("className section rollNo admissionNo")
+        .lean(),
 
-        Exam.findOne({
-          _id: exam,
-          academicSession,
-        })
-          .select(
-            "_id applicableClasses"
-          )
-          .lean(),
-      ]);
+      Exam.findOne({
+        _id: exam,
+        academicSession,
+      })
+        .select("_id applicableClasses maximumMarksPerSubject")
+        .lean(),
+    ]);
 
     if (!studentDoc) {
       return {
@@ -478,20 +391,14 @@ export async function saveStudentMarks({
     if (!examDoc) {
       return {
         success: false,
-        message:
-          "Exam not found in selected academic session.",
+        message: "Exam not found in selected academic session.",
       };
     }
 
-    if (
-      !examDoc.applicableClasses.includes(
-        studentDoc.className
-      )
-    ) {
+    if (!examDoc.applicableClasses.includes(studentDoc.className)) {
       return {
         success: false,
-        message:
-          "Exam is not applicable to this student's class.",
+        message: "Exam is not applicable to this student's class.",
       };
     }
 
@@ -499,23 +406,18 @@ export async function saveStudentMarks({
       .filter((mark) => mark.subject)
       .map((mark) => mark.subject);
 
-    const subjects =
-      await Subject.find({
-        _id: {
-          $in: subjectIds,
-        },
-        applicableClasses:
-          studentDoc.className,
-      })
-        .select("_id")
-        .lean();
+    const subjects = await Subject.find({
+      _id: {
+        $in: subjectIds,
+      },
+      applicableClasses: studentDoc.className,
+    })
+      .select("_id")
+      .lean();
 
-    const allowedSubjectIds =
-      new Set(
-        subjects.map((subject) =>
-          subject._id.toString()
-        )
-      );
+    const allowedSubjectIds = new Set(
+      subjects.map((subject) => subject._id.toString()),
+    );
 
     const operations = [];
 
@@ -527,71 +429,52 @@ export async function saveStudentMarks({
         };
       }
 
-      const subjectId =
-        mark.subject.toString();
+      const subjectId = mark.subject.toString();
 
-      if (
-        !allowedSubjectIds.has(
-          subjectId
-        )
-      ) {
+      if (!allowedSubjectIds.has(subjectId)) {
         return {
           success: false,
-          message:
-            "Subject is not applicable to this student's class.",
+          message: "Subject is not applicable to this student's class.",
         };
       }
 
       if (
         mark.obtainedMarks === "" ||
         mark.obtainedMarks === null ||
-        mark.obtainedMarks ===
-          undefined
+        mark.obtainedMarks === undefined
       ) {
         continue;
       }
 
-      const obtainedMarks =
-        Number(mark.obtainedMarks);
+      const obtainedMarks = Number(mark.obtainedMarks);
 
-      const maximumMarks =
-        Number(mark.maximumMarks);
+      const maximumMarks = examDoc.maximumMarksPerSubject;
 
-      if (
-        Number.isNaN(obtainedMarks) ||
-        Number.isNaN(maximumMarks)
-      ) {
+      if (Number.isNaN(obtainedMarks) || Number.isNaN(maximumMarks)) {
         return {
           success: false,
-          message:
-            "Marks must be numeric.",
+          message: "Marks must be numeric.",
         };
       }
 
       if (obtainedMarks < 0) {
         return {
           success: false,
-          message:
-            "Obtained marks cannot be negative.",
+          message: "Obtained marks cannot be negative.",
         };
       }
 
       if (maximumMarks <= 0) {
         return {
           success: false,
-          message:
-            "Maximum marks must be greater than zero.",
+          message: "Maximum marks must be greater than zero.",
         };
       }
 
-      if (
-        obtainedMarks >
-        maximumMarks
-      ) {
+      if (obtainedMarks > maximumMarks) {
         return {
           success: false,
-          message:
-            `Obtained marks cannot exceed ${maximumMarks}.`,
+          message: `Obtained marks cannot exceed ${maximumMarks}.`,
         };
       }
 
@@ -610,21 +493,16 @@ export async function saveStudentMarks({
               exam,
               student,
 
-              className:
-                studentDoc.className,
+              className: studentDoc.className,
 
-              section:
-                studentDoc.section,
+              section: studentDoc.section,
 
-              subject:
-                mark.subject,
+              subject: mark.subject,
 
               obtainedMarks,
               maximumMarks,
 
-              remarks:
-                mark.remarks?.trim() ||
-                "",
+              remarks: mark.remarks?.trim() || "",
             },
           },
 
@@ -636,36 +514,27 @@ export async function saveStudentMarks({
     if (operations.length === 0) {
       return {
         success: false,
-        message:
-          "Enter marks for at least one subject.",
+        message: "Enter marks for at least one subject.",
       };
     }
 
-    await Mark.bulkWrite(
-      operations,
-      {
-        ordered: false,
-      }
-    );
+    await Mark.bulkWrite(operations, {
+      ordered: false,
+    });
 
     revalidatePath("/admin/marks");
     revalidatePath("/admin/results");
 
     return {
       success: true,
-      message:
-        "Marks saved successfully.",
+      message: "Marks saved successfully.",
     };
   } catch (error) {
-    console.error(
-      "Save Student Marks Error:",
-      error
-    );
+    console.error("Save Student Marks Error:", error);
 
     return {
       success: false,
-      message:
-        "Failed to save marks.",
+      message: "Failed to save marks.",
     };
   }
 }
@@ -679,8 +548,7 @@ export async function saveStudentMarks({
 // ============================
 
 async function getClassTeacherMarksContext() {
-  const currentUser =
-    await getCurrentUser();
+  const currentUser = await getCurrentUser();
 
   // ============================
   // Authentication
@@ -693,21 +561,17 @@ async function getClassTeacherMarksContext() {
     };
   }
 
-  if (
-    currentUser.role !== "TEACHER"
-  ) {
+  if (currentUser.role !== "TEACHER") {
     return {
       success: false,
-      message:
-        "Teacher access required.",
+      message: "Teacher access required.",
     };
   }
 
   if (!currentUser.teacherId) {
     return {
       success: false,
-      message:
-        "Teacher profile is not linked to this account.",
+      message: "Teacher profile is not linked to this account.",
     };
   }
 
@@ -715,50 +579,36 @@ async function getClassTeacherMarksContext() {
   // Teacher + Active Session
   // ============================
 
-  const [
-    teacher,
-    activeSession,
-  ] = await Promise.all([
-    Teacher.findById(
-      currentUser.teacherId
-    )
-      .select(
-        "_id employeeId firstName lastName status"
-      )
+  const [teacher, activeSession] = await Promise.all([
+    Teacher.findById(currentUser.teacherId)
+      .select("_id employeeId firstName lastName status")
       .lean(),
 
     AcademicSession.findOne({
       isActive: true,
     })
-      .select(
-        "_id name startDate endDate"
-      )
+      .select("_id name startDate endDate")
       .lean(),
   ]);
 
   if (!teacher) {
     return {
       success: false,
-      message:
-        "Teacher profile not found.",
+      message: "Teacher profile not found.",
     };
   }
 
-  if (
-    teacher.status !== "ACTIVE"
-  ) {
+  if (teacher.status !== "ACTIVE") {
     return {
       success: false,
-      message:
-        "Teacher profile is inactive.",
+      message: "Teacher profile is inactive.",
     };
   }
 
   if (!activeSession) {
     return {
       success: false,
-      message:
-        "No active academic session found.",
+      message: "No active academic session found.",
     };
   }
 
@@ -766,27 +616,22 @@ async function getClassTeacherMarksContext() {
   // Class Teacher Assignment
   // ============================
 
-  const classTeacherAssignment =
-    await TeacherAssignment.findOne({
-      teacher: teacher._id,
+  const classTeacherAssignment = await TeacherAssignment.findOne({
+    teacher: teacher._id,
 
-      academicSession:
-        activeSession._id,
+    academicSession: activeSession._id,
 
-      isClassTeacher: true,
+    isClassTeacher: true,
 
-      status: true,
-    })
-      .select(
-        "_id className section isClassTeacher"
-      )
-      .lean();
+    status: true,
+  })
+    .select("_id className section isClassTeacher")
+    .lean();
 
   if (!classTeacherAssignment) {
     return {
       success: false,
-      message:
-        "Only the class teacher can enter marks.",
+      message: "Only the class teacher can enter marks.",
     };
   }
 
@@ -808,8 +653,7 @@ export async function getClassTeacherMarksSetup() {
   try {
     await connectDB();
 
-    const context =
-      await getClassTeacherMarksContext();
+    const context = await getClassTeacherMarksContext();
 
     if (!context.success) {
       return {
@@ -822,92 +666,63 @@ export async function getClassTeacherMarksSetup() {
       };
     }
 
-    const {
-      activeSession,
-      classTeacherAssignment,
-    } = context;
+    const { activeSession, classTeacherAssignment } = context;
 
-    const className =
-      classTeacherAssignment.className;
+    const className = classTeacherAssignment.className;
 
-    const section =
-      classTeacherAssignment.section;
+    const section = classTeacherAssignment.section;
 
     // ============================
     // Subjects + Exams
     // ============================
 
-    const [subjects, exams] =
-      await Promise.all([
-        Subject.find({
-          applicableClasses:
-            className,
+    const [subjects, exams] = await Promise.all([
+      Subject.find({
+        applicableClasses: className,
 
-          status: true,
+        status: true,
+      })
+        .select("_id subjectName subjectCode")
+        .sort({
+          subjectName: 1,
         })
-          .select(
-            "_id subjectName subjectCode"
-          )
-          .sort({
-            subjectName: 1,
-          })
-          .lean(),
+        .lean(),
 
-        Exam.find({
-          academicSession:
-            activeSession._id,
+      Exam.find({
+        academicSession: activeSession._id,
 
-          applicableClasses:
-            className,
+        applicableClasses: className,
 
-          status: true,
+        status: true,
+      })
+        .select("_id examName examType startDate endDate")
+        .sort({
+          startDate: 1,
+          createdAt: 1,
         })
-          .select(
-            "_id examName examType startDate endDate"
-          )
-          .sort({
-            startDate: 1,
-            createdAt: 1,
-          })
-          .lean(),
-      ]);
+        .lean(),
+    ]);
 
     return {
       success: true,
 
-      session: JSON.parse(
-        JSON.stringify(
-          activeSession
-        )
-      ),
+      session: JSON.parse(JSON.stringify(activeSession)),
 
       classInfo: {
         className,
         section,
       },
 
-      subjects: JSON.parse(
-        JSON.stringify(
-          subjects
-        )
-      ),
+      subjects: JSON.parse(JSON.stringify(subjects)),
 
-      exams: JSON.parse(
-        JSON.stringify(
-          exams
-        )
-      ),
+      exams: JSON.parse(JSON.stringify(exams)),
     };
   } catch (error) {
-    console.error(
-      "Get Class Teacher Marks Setup Error:",
-      error
-    );
+    console.error("Get Class Teacher Marks Setup Error:", error);
 
     return {
       success: false,
-      message:
-        "Failed to load marks setup.",
+      message: "Failed to load marks setup.",
       classInfo: null,
       session: null,
       subjects: [],
@@ -920,9 +735,7 @@ export async function getClassTeacherMarksSetup() {
 // Get Students + Existing Marks
 // ============================
 
-export async function getClassTeacherMarksData({
-  examId,
-}) {
+export async function getClassTeacherMarksData({ examId }) {
   try {
     await connectDB();
 
@@ -938,8 +751,7 @@ export async function getClassTeacherMarksData({
       };
     }
 
-    const context =
-      await getClassTeacherMarksContext();
+    const context = await getClassTeacherMarksContext();
 
     if (!context.success) {
       return {
@@ -953,40 +765,30 @@ export async function getClassTeacherMarksData({
       };
     }
 
-    const {
-      activeSession,
-      classTeacherAssignment,
-    } = context;
+    const { activeSession, classTeacherAssignment } = context;
 
-    const className =
-      classTeacherAssignment.className;
+    const className = classTeacherAssignment.className;
 
-    const section =
-      classTeacherAssignment.section;
+    const section = classTeacherAssignment.section;
 
     // ============================
     // Validate Exam
     // ============================
 
-    const exam =
-      await Exam.findOne({
-        _id: examId,
+    const exam = await Exam.findOne({
+      _id: examId,
 
-        academicSession:
-          activeSession._id,
+      academicSession: activeSession._id,
 
-        status: true,
-      })
-        .select(
-          "_id examName examType applicableClasses startDate endDate"
-        )
-        .lean();
+      status: true,
+    })
+      .select("_id examName examType applicableClasses startDate endDate")
+      .lean();
 
     if (!exam) {
       return {
         success: false,
-        message:
-          "Exam not found or inactive.",
+        message: "Exam not found or inactive.",
         students: [],
         subjects: [],
         marks: [],
@@ -995,15 +797,10 @@ export async function getClassTeacherMarksData({
       };
     }
 
-    if (
-      !exam.applicableClasses.includes(
-        className
-      )
-    ) {
+    if (!exam.applicableClasses.includes(className)) {
       return {
         success: false,
-        message:
-          "This exam is not applicable to your class.",
+        message: "This exam is not applicable to your class.",
         students: [],
         subjects: [],
         marks: [],
@@ -1016,20 +813,13 @@ export async function getClassTeacherMarksData({
     // Load Data In Parallel
     // ============================
 
-    const [
-      subjects,
-      students,
-      existingMarks,
-    ] = await Promise.all([
+    const [subjects, students, existingMarks] = await Promise.all([
       Subject.find({
-        applicableClasses:
-          className,
+        applicableClasses: className,
 
         status: true,
       })
-        .select(
-          "_id subjectName subjectCode"
-        )
+        .select("_id subjectName subjectCode")
         .sort({
           subjectName: 1,
         })
@@ -1040,9 +830,7 @@ export async function getClassTeacherMarksData({
         section,
         status: "Active",
       })
-        .select(
-          "_id admissionNo rollNo firstName lastName"
-        )
+        .select("_id admissionNo rollNo firstName lastName")
         .sort({
           rollNo: 1,
           firstName: 1,
@@ -1050,8 +838,7 @@ export async function getClassTeacherMarksData({
         .lean(),
 
       Mark.find({
-        academicSession:
-          activeSession._id,
+        academicSession: activeSession._id,
 
         exam: exam._id,
 
@@ -1059,7 +846,7 @@ export async function getClassTeacherMarksData({
         section,
       })
         .select(
-          "_id student subject obtainedMarks maximumMarks remarks enteredBy"
+          "_id student subject obtainedMarks maximumMarks remarks enteredBy",
         )
         .lean(),
     ]);
@@ -1067,43 +854,25 @@ export async function getClassTeacherMarksData({
     return {
       success: true,
 
-      exam: JSON.parse(
-        JSON.stringify(exam)
-      ),
+      exam: JSON.parse(JSON.stringify(exam)),
 
       classInfo: {
         className,
         section,
       },
 
-      subjects: JSON.parse(
-        JSON.stringify(
-          subjects
-        )
-      ),
+      subjects: JSON.parse(JSON.stringify(subjects)),
 
-      students: JSON.parse(
-        JSON.stringify(
-          students
-        )
-      ),
+      students: JSON.parse(JSON.stringify(students)),
 
-      marks: JSON.parse(
-        JSON.stringify(
-          existingMarks
-        )
-      ),
+      marks: JSON.parse(JSON.stringify(existingMarks)),
     };
   } catch (error) {
-    console.error(
-      "Get Class Teacher Marks Data Error:",
-      error
-    );
+    console.error("Get Class Teacher Marks Data Error:", error);
 
     return {
       success: false,
-      message:
-        "Failed to load marks data.",
+      message: "Failed to load marks data.",
       students: [],
       subjects: [],
       marks: [],
@@ -1117,11 +886,7 @@ export async function getClassTeacherMarksData({
 // Save Class Teacher Marks
 // ============================
 
-export async function saveClassTeacherMarks({
-  examId,
-  maximumMarks,
-  marks,
-}) {
+export async function saveClassTeacherMarks({ examId, marks }) {
   try {
     await connectDB();
 
@@ -1136,28 +901,10 @@ export async function saveClassTeacherMarks({
       };
     }
 
-    const maxMarks =
-      Number(maximumMarks);
-
-    if (
-      Number.isNaN(maxMarks) ||
-      maxMarks <= 0
-    ) {
+    if (!Array.isArray(marks) || marks.length === 0) {
       return {
         success: false,
-        message:
-          "Maximum marks must be greater than zero.",
-      };
-    }
-
-    if (
-      !Array.isArray(marks) ||
-      marks.length === 0
-    ) {
-      return {
-        success: false,
-        message:
-          "No marks to save.",
+        message: "No marks to save.",
       };
     }
 
@@ -1165,8 +912,7 @@ export async function saveClassTeacherMarks({
     // Secure Class Teacher Context
     // ============================
 
-    const context =
-      await getClassTeacherMarksContext();
+    const context = await getClassTeacherMarksContext();
 
     if (!context.success) {
       return {
@@ -1175,53 +921,45 @@ export async function saveClassTeacherMarks({
       };
     }
 
-    const {
-      currentUser,
-      activeSession,
-      classTeacherAssignment,
-    } = context;
+    const { currentUser, activeSession, classTeacherAssignment } = context;
 
-    const className =
-      classTeacherAssignment.className;
+    const className = classTeacherAssignment.className;
 
-    const section =
-      classTeacherAssignment.section;
+    const section = classTeacherAssignment.section;
 
     // ============================
     // Validate Exam
     // ============================
 
-    const exam =
-      await Exam.findOne({
-        _id: examId,
+    const exam = await Exam.findOne({
+      _id: examId,
 
-        academicSession:
-          activeSession._id,
+      academicSession: activeSession._id,
 
-        status: true,
-      })
-        .select(
-          "_id examName applicableClasses"
-        )
-        .lean();
+      status: true,
+    })
+      .select("_id applicableClasses maximumMarksPerSubject")
+      .lean();
 
     if (!exam) {
       return {
         success: false,
-        message:
-          "Exam not found or inactive.",
+        message: "Exam not found or inactive.",
       };
     }
 
-    if (
-      !exam.applicableClasses.includes(
-        className
-      )
-    ) {
+    if (!exam.applicableClasses.includes(className)) {
       return {
         success: false,
-        message:
-          "This exam is not applicable to your class.",
+        message: "This exam is not applicable to your class.",
+      };
+    }
+    const maxMarks = exam.maximumMarksPerSubject;
+
+    if (Number.isNaN(maxMarks) || maxMarks <= 0) {
+      return {
+        success: false,
+        message: "Maximum marks must be greater than zero.",
       };
     }
 
@@ -1229,86 +967,67 @@ export async function saveClassTeacherMarks({
     // Allowed Students + Subjects
     // ============================
 
-    const [students, subjects] =
-      await Promise.all([
-        Student.find({
-          className,
-          section,
-          status: "Active",
-        })
-          .select("_id")
-          .lean(),
+    const [students, subjects] = await Promise.all([
+      Student.find({
+        className,
+        section,
+        status: "Active",
+      })
+        .select("_id")
+        .lean(),
 
-        Subject.find({
-          applicableClasses:
-            className,
+      Subject.find({
+        applicableClasses: className,
 
-          status: true,
-        })
-          .select("_id")
-          .lean(),
-      ]);
+        status: true,
+      })
+        .select("_id")
+        .lean(),
+    ]);
 
     if (students.length === 0) {
       return {
         success: false,
-        message:
-          "No active students found in this class.",
+        message: "No active students found in this class.",
       };
     }
 
     if (subjects.length === 0) {
       return {
         success: false,
-        message:
-          "No active subjects found for this class.",
+        message: "No active subjects found for this class.",
       };
     }
 
-    const allowedStudentIds =
-      new Set(
-        students.map((student) =>
-          student._id.toString()
-        )
-      );
+    const allowedStudentIds = new Set(
+      students.map((student) => student._id.toString()),
+    );
 
-    const allowedSubjectIds =
-      new Set(
-        subjects.map((subject) =>
-          subject._id.toString()
-        )
-      );
+    const allowedSubjectIds = new Set(
+      subjects.map((subject) => subject._id.toString()),
+    );
 
     // ============================
     // Validate + Build Bulk Writes
     // ============================
 
-    const submittedPairs =
-      new Set();
+    const submittedPairs = new Set();
 
     const operations = [];
 
     for (const mark of marks) {
-      const studentId =
-        mark.student?.toString();
+      const studentId = mark.student?.toString();
 
-      const subjectId =
-        mark.subject?.toString();
+      const subjectId = mark.subject?.toString();
 
       // ============================
       // Student Validation
       // ============================
 
-      if (
-        !studentId ||
-        !allowedStudentIds.has(
-          studentId
-        )
-      ) {
+      if (!studentId || !allowedStudentIds.has(studentId)) {
         return {
           success: false,
-          message:
-            "Invalid student in marks data.",
+          message: "Invalid student in marks data.",
         };
       }
 
@@ -1316,16 +1035,10 @@ export async function saveClassTeacherMarks({
       // Subject Validation
       // ============================
 
-      if (
-        !subjectId ||
-        !allowedSubjectIds.has(
-          subjectId
-        )
-      ) {
+      if (!subjectId || !allowedSubjectIds.has(subjectId)) {
         return {
           success: false,
-          message:
-            "Invalid subject in marks data.",
+          message: "Invalid subject in marks data.",
         };
       }
 
@@ -1333,24 +1046,16 @@ export async function saveClassTeacherMarks({
       // Prevent Duplicate Pair
       // ============================
 
-      const pairKey =
-        `${studentId}:${subjectId}`;
+      const pairKey = `${studentId}:${subjectId}`;
 
-      if (
-        submittedPairs.has(
-          pairKey
-        )
-      ) {
+      if (submittedPairs.has(pairKey)) {
         return {
           success: false,
-          message:
-            "Duplicate student and subject marks found.",
+          message: "Duplicate student and subject marks found.",
         };
       }
 
-      submittedPairs.add(
-        pairKey
-      );
+      submittedPairs.add(pairKey);
 
       // ============================
       // Blank = Not Entered
@@ -1359,49 +1064,35 @@ export async function saveClassTeacherMarks({
       if (
         mark.obtainedMarks === "" ||
         mark.obtainedMarks === null ||
-        mark.obtainedMarks ===
-          undefined
+        mark.obtainedMarks === undefined
       ) {
         continue;
       }
 
-      const obtainedMarks =
-        Number(
-          mark.obtainedMarks
-        );
+      const obtainedMarks = Number(mark.obtainedMarks);
 
       // ============================
       // Marks Validation
       // ============================
 
-      if (
-        Number.isNaN(
-          obtainedMarks
-        )
-      ) {
+      if (Number.isNaN(obtainedMarks)) {
         return {
           success: false,
-          message:
-            "Marks must be numeric.",
+          message: "Marks must be numeric.",
         };
       }
 
       if (obtainedMarks < 0) {
         return {
           success: false,
-          message:
-            "Obtained marks cannot be negative.",
+          message: "Obtained marks cannot be negative.",
         };
       }
 
-      if (
-        obtainedMarks >
-        maxMarks
-      ) {
+      if (obtainedMarks > maxMarks) {
         return {
           success: false,
-          message:
-            `Obtained marks cannot exceed ${maxMarks}.`,
+          message: `Obtained marks cannot exceed ${maxMarks}.`,
         };
       }
 
@@ -1412,8 +1103,7 @@ export async function saveClassTeacherMarks({
       operations.push({
         updateOne: {
           filter: {
-            academicSession:
-              activeSession._id,
+            academicSession: activeSession._id,
 
             exam: exam._id,
 
@@ -1424,8 +1114,7 @@ export async function saveClassTeacherMarks({
 
           update: {
             $set: {
-              academicSession:
-                activeSession._id,
+              academicSession: activeSession._id,
 
               exam: exam._id,
 
@@ -1439,15 +1128,11 @@ export async function saveClassTeacherMarks({
 
               obtainedMarks,
 
-              maximumMarks:
-                maxMarks,
+              maximumMarks: maxMarks,
 
-              remarks:
-                mark.remarks?.trim() ||
-                "",
+              remarks: mark.remarks?.trim() || "",
 
-              enteredBy:
-                currentUser.id,
+              enteredBy: currentUser.id,
             },
           },
 
@@ -1463,8 +1148,7 @@ export async function saveClassTeacherMarks({
     if (operations.length === 0) {
       return {
         success: false,
-        message:
-          "Enter marks for at least one student.",
+        message: "Enter marks for at least one student.",
       };
     }
 
@@ -1472,12 +1156,9 @@ export async function saveClassTeacherMarks({
     // Fast Bulk Save
     // ============================
 
-    await Mark.bulkWrite(
-      operations,
-      {
-        ordered: false,
-      }
-    );
+    await Mark.bulkWrite(operations, {
+      ordered: false,
+    });
 
     revalidatePath("/teacher");
     revalidatePath("/teacher/results");
@@ -1488,30 +1169,23 @@ export async function saveClassTeacherMarks({
     return {
       success: true,
 
-      message:
-        "Marks saved successfully.",
+      message: "Marks saved successfully.",
 
-      savedCount:
-        operations.length,
+      savedCount: operations.length,
     };
   } catch (error) {
-    console.error(
-      "Save Class Teacher Marks Error:",
-      error
-    );
+    console.error("Save Class Teacher Marks Error:", error);
 
     if (error?.code === 11000) {
       return {
         success: false,
-        message:
-          "Duplicate marks record detected. Please try again.",
+        message: "Duplicate marks record detected. Please try again.",
       };
     }
 
     return {
       success: false,
-      message:
-        "Failed to save marks.",
+      message: "Failed to save marks.",
     };
   }
 }
