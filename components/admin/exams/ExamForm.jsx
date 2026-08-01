@@ -6,7 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-import { createExam, updateExam } from "@/app/actions/examActions";
+import {
+  createExam,
+  updateExam,
+  getExamsBySession,
+} from "@/app/actions/examActions";
 
 import { getActiveAcademicSession } from "@/app/actions/academicSessionActions";
 
@@ -16,6 +20,7 @@ import { EXAM_TYPES } from "@/constants/examTypes";
 export default function ExamForm({ initialData = {}, onSuccess, onCancel }) {
   const [loading, setLoading] = useState(false);
   const [activeSession, setActiveSession] = useState(null);
+  const [sessionExams, setSessionExams] = useState([]);
 
   const [formData, setFormData] = useState(getFormData());
 
@@ -25,14 +30,22 @@ export default function ExamForm({ initialData = {}, onSuccess, onCancel }) {
     return {
       examName: data.examName || "",
       examType: data.examType || "",
+
+      resultMode: data.resultMode || "INDIVIDUAL",
+      includedExams: data.includedExams?.map((exam) => exam._id || exam) || [],
+
       academicSession: data.academicSession?._id || "",
       applicableClasses: data.applicableClasses || [],
+
       maximumMarksPerSubject: data.maximumMarksPerSubject ?? "",
+
       startDate: data.startDate ? data.startDate.slice(0, 10) : "",
       endDate: data.endDate ? data.endDate.slice(0, 10) : "",
+
       status: data.status ?? true,
     };
   }
+
   useEffect(() => {
     setFormData(getFormData());
   }, [initialData]);
@@ -45,7 +58,10 @@ export default function ExamForm({ initialData = {}, onSuccess, onCancel }) {
 
       setActiveSession(session);
 
-      // Only auto-set the session when creating a new exam
+      const exams = await getExamsBySession(session._id);
+
+      setSessionExams(exams.filter((exam) => exam._id !== initialData?._id));
+
       if (!initialData?._id) {
         setFormData((prev) => ({
           ...prev,
@@ -65,7 +81,6 @@ export default function ExamForm({ initialData = {}, onSuccess, onCancel }) {
         ...prev,
         status: checked,
       }));
-
       return;
     }
 
@@ -81,6 +96,15 @@ export default function ExamForm({ initialData = {}, onSuccess, onCancel }) {
       applicableClasses: prev.applicableClasses.includes(className)
         ? prev.applicableClasses.filter((cls) => cls !== className)
         : [...prev.applicableClasses, className],
+    }));
+  }
+
+  function handleIncludedExam(examId) {
+    setFormData((prev) => ({
+      ...prev,
+      includedExams: prev.includedExams.includes(examId)
+        ? prev.includedExams.filter((id) => id !== examId)
+        : [...prev.includedExams, examId],
     }));
   }
 
@@ -108,6 +132,8 @@ export default function ExamForm({ initialData = {}, onSuccess, onCancel }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Exam Name */}
+
       <div className="space-y-2">
         <Label>Exam Name</Label>
 
@@ -119,6 +145,8 @@ export default function ExamForm({ initialData = {}, onSuccess, onCancel }) {
           required
         />
       </div>
+
+      {/* Exam Type */}
 
       <div className="space-y-2">
         <Label>Exam Type</Label>
@@ -140,6 +168,56 @@ export default function ExamForm({ initialData = {}, onSuccess, onCancel }) {
         </select>
       </div>
 
+      {/* Result Mode */}
+
+      <div className="space-y-2">
+        <Label>Result Mode</Label>
+
+        <select
+          name="resultMode"
+          value={formData.resultMode}
+          onChange={handleChange}
+          className="w-full rounded-md border px-3 py-2"
+        >
+          <option value="INDIVIDUAL">Individual Result</option>
+
+          <option value="CUMULATIVE">Cumulative Result</option>
+        </select>
+      </div>
+
+      {/* Included Exams */}
+
+      {formData.resultMode === "CUMULATIVE" && (
+        <div className="space-y-3">
+          <Label>Included Exams</Label>
+
+          {sessionExams.length === 0 ? (
+            <p className="text-sm text-gray-500">
+              No previous exams available.
+            </p>
+          ) : (
+            <div className="space-y-2 rounded-md border p-3">
+              {sessionExams.map((exam) => (
+                <label
+                  key={exam._id}
+                  className="flex items-center gap-2 text-sm"
+                >
+                  <input
+                    type="checkbox"
+                    checked={formData.includedExams.includes(exam._id)}
+                    onChange={() => handleIncludedExam(exam._id)}
+                  />
+
+                  {exam.examName}
+                </label>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Maximum Marks */}
+
       <div className="space-y-2">
         <Label>Maximum Marks Per Subject</Label>
 
@@ -148,9 +226,9 @@ export default function ExamForm({ initialData = {}, onSuccess, onCancel }) {
           name="maximumMarksPerSubject"
           min={1}
           step={1}
-          placeholder="25"
           value={formData.maximumMarksPerSubject}
           onChange={handleChange}
+          placeholder="25"
           required
         />
 
@@ -159,11 +237,15 @@ export default function ExamForm({ initialData = {}, onSuccess, onCancel }) {
         </p>
       </div>
 
+      {/* Academic Session */}
+
       <div className="space-y-2">
         <Label>Academic Session</Label>
 
         <Input value={activeSession?.name || ""} disabled />
       </div>
+
+      {/* Classes */}
 
       <div className="space-y-3">
         <Label>Applicable Classes</Label>
@@ -182,6 +264,8 @@ export default function ExamForm({ initialData = {}, onSuccess, onCancel }) {
           ))}
         </div>
       </div>
+
+      {/* Dates */}
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
@@ -207,6 +291,8 @@ export default function ExamForm({ initialData = {}, onSuccess, onCancel }) {
         </div>
       </div>
 
+      {/* Status */}
+
       <div className="flex items-center gap-2">
         <input
           type="checkbox"
@@ -217,6 +303,8 @@ export default function ExamForm({ initialData = {}, onSuccess, onCancel }) {
 
         <Label>Active</Label>
       </div>
+
+      {/* Buttons */}
 
       <div className="flex justify-end gap-3">
         <Button type="button" variant="outline" onClick={onCancel}>

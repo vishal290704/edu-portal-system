@@ -54,13 +54,18 @@ export async function createExam(data) {
     const exam = await Exam.create({
       examName,
       examType,
-      resultMode: data.resultMode || "INDIVIDUAL",
+
+      resultMode: data.resultMode,
+      includedExams: data.includedExams || [],
+
+      maximumMarksPerSubject: Number(data.maximumMarksPerSubject),
+
       academicSession: data.academicSession,
       applicableClasses: data.applicableClasses,
-      includedExams: data.includedExams || [],
-      maximumMarksPerSubject: Number(data.maximumMarksPerSubject),
+
       startDate: data.startDate || null,
       endDate: data.endDate || null,
+
       status: data.status ?? true,
     });
 
@@ -150,13 +155,18 @@ export async function updateExam(id, data) {
       {
         examName,
         examType,
-        resultMode: data.resultMode || "INDIVIDUAL",
+
+        resultMode: data.resultMode,
+        includedExams: data.includedExams || [],
+
+        maximumMarksPerSubject: Number(data.maximumMarksPerSubject),
+
         academicSession: data.academicSession,
         applicableClasses: data.applicableClasses,
-        includedExams: data.includedExams || [],
-        maximumMarksPerSubject: Number(data.maximumMarksPerSubject),
+
         startDate: data.startDate || null,
         endDate: data.endDate || null,
+
         status: data.status,
       },
       { new: true },
@@ -302,7 +312,9 @@ export async function getTeacherExams() {
       applicableClasses: assignment.className,
       status: true,
     })
-      .select("_id examName examType startDate endDate")
+      .select(
+        "_id examName examType resultMode maximumMarksPerSubject startDate endDate",
+      )
       .sort({
         startDate: 1,
         createdAt: 1,
@@ -342,4 +354,18 @@ export async function getTeacherExams() {
       message: "Failed to load exams.",
     };
   }
+}
+
+export async function getExamsBySession(sessionId) {
+  await connectDB();
+
+  const exams = await Exam.find({
+    academicSession: sessionId,
+    status: true,
+  })
+    .select("_id examName")
+    .sort({ createdAt: 1 })
+    .lean();
+
+  return JSON.parse(JSON.stringify(exams));
 }
