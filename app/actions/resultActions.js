@@ -73,7 +73,9 @@ export async function getStudentResult({ academicSession, exam, student }) {
     // Get Exam
     // ===================================
 
-    const examDoc = await Exam.findById(exam).select("examName").lean();
+    const examDoc = await Exam.findById(exam)
+      .select("examName resultMode includedExams")
+      .lean();
 
     if (!examDoc) {
       return {
@@ -86,9 +88,19 @@ export async function getStudentResult({ academicSession, exam, student }) {
     // Get Student Marks
     // ===================================
 
+    // ===================================
+    // Get Student Marks
+    // ===================================
+
+    let examIds = [exam];
+
+    if (examDoc.resultMode === "CUMULATIVE") {
+      examIds = [exam, ...(examDoc.includedExams || [])];
+    }
+
     const marks = await Mark.find({
       academicSession,
-      exam,
+      exam: { $in: examIds },
       student,
     })
       .populate("subject", "_id subjectName subjectCode")
@@ -100,29 +112,45 @@ export async function getStudentResult({ academicSession, exam, student }) {
         message: "No marks found for this student.",
       };
     }
-
     // ===================================
     // Calculate Subject Results
     // ===================================
 
+    const subjectMap = new Map();
+
+    for (const mark of marks) {
+      const subjectId = mark.subject?._id?.toString();
+
+      if (!subjectMap.has(subjectId)) {
+        subjectMap.set(subjectId, {
+          id: subjectId,
+          subject: mark.subject?.subjectName || "",
+          code: mark.subject?.subjectCode || "",
+          obtained: 0,
+          maximum: 0,
+        });
+      }
+
+      const subject = subjectMap.get(subjectId);
+
+      subject.obtained += Number(mark.obtainedMarks);
+      subject.maximum += Number(mark.maximumMarks);
+    }
+
     let totalObtained = 0;
     let totalMaximum = 0;
-    const subjects = marks.map((mark) => {
-      const obtained = Number(mark.obtainedMarks);
-      const maximum = Number(mark.maximumMarks);
 
-      totalObtained += obtained;
-      totalMaximum += maximum;
+    const subjects = Array.from(subjectMap.values()).map((subject) => {
+      totalObtained += subject.obtained;
+      totalMaximum += subject.maximum;
 
-      const subjectResult = calculateSubjectResult(obtained, maximum);
+      const subjectResult = calculateSubjectResult(
+        subject.obtained,
+        subject.maximum,
+      );
 
       return {
-        id: mark.subject?._id?.toString() || "",
-        subject: mark.subject?.subjectName || "",
-        code: mark.subject?.subjectCode || "",
-
-        obtained,
-        maximum,
+        ...subject,
 
         percentage: subjectResult.percentage,
         grade: subjectResult.grade,
@@ -130,6 +158,7 @@ export async function getStudentResult({ academicSession, exam, student }) {
         remarks: calculateRemark(subjectResult.percentage),
       };
     });
+
     // ===================================
     // Overall Result
     // ===================================
@@ -154,7 +183,7 @@ export async function getStudentResult({ academicSession, exam, student }) {
 
     const classMarks = await Mark.find({
       academicSession,
-      exam,
+      exam: { $in: examIds },
       className,
       section,
     })
