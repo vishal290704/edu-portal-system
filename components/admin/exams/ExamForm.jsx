@@ -133,7 +133,6 @@ export default function ExamForm({ initialData = {}, onSuccess, onCancel }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Exam Name */}
-
       <div className="space-y-2">
         <Label>Exam Name</Label>
 
@@ -147,7 +146,6 @@ export default function ExamForm({ initialData = {}, onSuccess, onCancel }) {
       </div>
 
       {/* Exam Type */}
-
       <div className="space-y-2">
         <Label>Exam Type</Label>
 
@@ -186,7 +184,6 @@ export default function ExamForm({ initialData = {}, onSuccess, onCancel }) {
       </div>
 
       {/* Included Exams */}
-
       {formData.resultMode === "CUMULATIVE" && (
         <div className="space-y-3">
           <Label>Included Exams</Label>
@@ -217,7 +214,6 @@ export default function ExamForm({ initialData = {}, onSuccess, onCancel }) {
       )}
 
       {/* Maximum Marks */}
-
       <div className="space-y-2">
         <Label>Maximum Marks Per Subject</Label>
 
@@ -238,7 +234,6 @@ export default function ExamForm({ initialData = {}, onSuccess, onCancel }) {
       </div>
 
       {/* Academic Session */}
-
       <div className="space-y-2">
         <Label>Academic Session</Label>
 
@@ -246,7 +241,6 @@ export default function ExamForm({ initialData = {}, onSuccess, onCancel }) {
       </div>
 
       {/* Classes */}
-
       <div className="space-y-3">
         <Label>Applicable Classes</Label>
 
@@ -266,7 +260,6 @@ export default function ExamForm({ initialData = {}, onSuccess, onCancel }) {
       </div>
 
       {/* Dates */}
-
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label>Start Date</Label>
@@ -292,7 +285,6 @@ export default function ExamForm({ initialData = {}, onSuccess, onCancel }) {
       </div>
 
       {/* Status */}
-
       <div className="flex items-center gap-2">
         <input
           type="checkbox"
@@ -305,7 +297,6 @@ export default function ExamForm({ initialData = {}, onSuccess, onCancel }) {
       </div>
 
       {/* Buttons */}
-
       <div className="flex justify-end gap-3">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
