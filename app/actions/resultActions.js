@@ -83,11 +83,6 @@ export async function getStudentResult({ academicSession, exam, student }) {
         message: "Exam not found.",
       };
     }
-
-    // ===================================
-    // Get Student Marks
-    // ===================================
-
     // ===================================
     // Get Student Marks
     // ===================================
@@ -104,6 +99,7 @@ export async function getStudentResult({ academicSession, exam, student }) {
       student,
     })
       .populate("subject", "_id subjectName subjectCode")
+      .populate("exam", "_id examName")
       .lean();
 
     if (marks.length === 0) {
@@ -126,12 +122,22 @@ export async function getStudentResult({ academicSession, exam, student }) {
           id: subjectId,
           subject: mark.subject?.subjectName || "",
           code: mark.subject?.subjectCode || "",
+
+          exams: [],
+
           obtained: 0,
           maximum: 0,
         });
       }
 
       const subject = subjectMap.get(subjectId);
+
+      subject.exams.push({
+        examId: mark.exam._id.toString(),
+        examName: mark.exam.examName,
+        obtained: Number(mark.obtainedMarks),
+        maximum: Number(mark.maximumMarks),
+      });
 
       subject.obtained += Number(mark.obtainedMarks);
       subject.maximum += Number(mark.maximumMarks);
