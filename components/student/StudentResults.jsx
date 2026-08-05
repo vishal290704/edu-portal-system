@@ -95,7 +95,6 @@ export default function StudentResults({ exams }) {
       )}
 
       {/* Result */}
-
       {!loading && result?.success && (
         <>
           {/* Summary Cards */}
@@ -131,7 +130,6 @@ export default function StudentResults({ exams }) {
           </div>
 
           {/* Student Info */}
-
           <div className="rounded-2xl border bg-white p-6 shadow-sm">
             <h2 className="mb-5 text-xl font-semibold">
               Student Details

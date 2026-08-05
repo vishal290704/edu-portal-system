@@ -18,7 +18,6 @@ export default function StudentResultCard({
       <p className="text-sm font-medium opacity-80">
         {title}
       </p>
-
       <h2 className="mt-3 text-3xl font-bold">
         {value ?? "-"}
       </h2>
