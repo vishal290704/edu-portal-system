@@ -244,12 +244,8 @@ export default function StudentResultCard({ result }) {
         </table>
 
       </div>
-
-
-      {/* ============================= */}
+      
       {/* Result Summary */}
-      {/* ============================= */}
-
       <div className="border-t bg-slate-50 p-6">
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
